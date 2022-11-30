@@ -18,8 +18,6 @@ package com.looksee.audit.contentAudit;
 // [START cloudrun_pubsub_handler]
 // [START run_pubsub_handler]
 import java.util.Base64;
-import java.util.HashMap;
-import java.util.Map;
 import java.util.concurrent.ExecutionException;
 
 import org.slf4j.Logger;
@@ -37,14 +35,24 @@ import com.fasterxml.jackson.databind.JsonMappingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.json.JsonMapper;
 import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule;
+import com.looksee.audit.contentAudit.gcp.PubSubAuditRecordPublisherImpl;
 import com.looksee.audit.contentAudit.gcp.PubSubErrorPublisherImpl;
-import com.looksee.audit.contentAudit.gcp.PubSubPublisherImpl;
 import com.looksee.audit.contentAudit.mapper.Body;
+import com.looksee.audit.contentAudit.models.Audit;
+import com.looksee.audit.contentAudit.models.AuditProgressUpdate;
 import com.looksee.audit.contentAudit.models.AuditRecord;
-import com.looksee.audit.contentAudit.models.PageAuditRecord;
-import com.looksee.audit.contentAudit.models.dto.PageBuiltMessage;
-import com.looksee.audit.contentAudit.models.enums.ExecutionStatus;
+import com.looksee.audit.contentAudit.models.ImageAltTextAudit;
+import com.looksee.audit.contentAudit.models.ImageAudit;
+import com.looksee.audit.contentAudit.models.ImagePolicyAudit;
+import com.looksee.audit.contentAudit.models.PageState;
+import com.looksee.audit.contentAudit.models.ParagraphingAudit;
+import com.looksee.audit.contentAudit.models.ReadabilityAudit;
+import com.looksee.audit.contentAudit.models.enums.AuditCategory;
+import com.looksee.audit.contentAudit.models.enums.AuditLevel;
+import com.looksee.audit.contentAudit.models.message.AuditError;
 import com.looksee.audit.contentAudit.services.AuditRecordService;
+import com.looksee.audit.contentAudit.services.PageStateService;
+import com.looksee.audit.visualDesignAudit.models.message.PageAuditMessage;
 
 // PubsubController consumes a Pub/Sub message.
 @RestController
@@ -55,91 +63,238 @@ public class AuditController {
 	private AuditRecordService audit_record_service;
 	
 	@Autowired
-	private PubSubPublisherImpl pubSubPublisherImpl;
+	private PageStateService page_state_service;
+	
+	@Autowired
+	private PubSubAuditRecordPublisherImpl pubSubPageAuditPublisherImpl;
 	
 	@Autowired
 	private PubSubErrorPublisherImpl pubSubErrorPublisherImpl;
 	
-  @RequestMapping(value = "/", method = RequestMethod.POST)
-  public ResponseEntity receiveMessage(@RequestBody Body body) throws JsonMappingException, JsonProcessingException, ExecutionException, InterruptedException {
+	@Autowired
+	private ImageAltTextAudit image_alt_text_auditor;
+
+	@Autowired
+	private ParagraphingAudit paragraph_auditor;
+
+	@Autowired
+	private ReadabilityAudit readability_auditor;
+
+	@Autowired
+	private ImageAudit image_audit;
+
+	@Autowired
+	private ImagePolicyAudit image_policy_audit;
+	
+	@RequestMapping(value = "/", method = RequestMethod.POST)
+	public ResponseEntity receiveMessage(@RequestBody Body body) throws JsonMappingException, JsonProcessingException, ExecutionException, InterruptedException {
 	  log.warn("body :: "+body);
 	  // Get PubSub message from request body.
-    Body.Message message = body.getMessage();
-    log.warn("message " + message);
-    /*
-    if (message == null) {
-      String msg = "Bad Request: invalid Pub/Sub message format";
-      System.out.println(msg);
-      return new ResponseEntity(msg, HttpStatus.BAD_REQUEST);
-    }
-*/
-    String data = message.getData();
-    log.warn("data :: "+data);
-  //retrieve audit record and determine type of audit record
+	  Body.Message message = body.getMessage();
+	  log.warn("message " + message);
+	    /*
+	    if (message == null) {
+	      String msg = "Bad Request: invalid Pub/Sub message format";
+	      System.out.println(msg);
+	      return new ResponseEntity(msg, HttpStatus.BAD_REQUEST);
+	    }
+	*/
+	  String data = message.getData();
+	  log.warn("data :: "+data);
+	  //retrieve audit record and determine type of audit record
     
-    byte[] decodedBytes = Base64.getUrlDecoder().decode(data);
-    String decoded_json = new String(decodedBytes);
+	  byte[] decodedBytes = Base64.getUrlDecoder().decode(data);
+	  String decoded_json = new String(decodedBytes);
 
-    //create ObjectMapper instance
-    ObjectMapper objectMapper = new ObjectMapper();
+	  //create ObjectMapper instance
+	  ObjectMapper objectMapper = new ObjectMapper();
     
-    //convert json string to object
-    PageBuiltMessage audit_record_msg = objectMapper.readValue(decoded_json, PageBuiltMessage.class);
-    log.warn("audit record = " + audit_record_msg);
-    try {
+	  //convert json string to object
+	  PageAuditMessage audit_record_msg = objectMapper.readValue(decoded_json, PageAuditMessage.class);
+	    
+	  JsonMapper mapper = new JsonMapper().builder().addModule(new JavaTimeModule()).build();;
+
+	  try {
+			AuditRecord audit_record = audit_record_service.findById(audit_record_msg.getPageAuditId()).get();
+			PageState page = page_state_service.findById(audit_record_msg.getPageId()).get();
+			
+			page.setElements(page_state_service.getElementStates(page.getId()));
+			log.warn("evaluating "+page.getElements().size()+" element state for content audit with page ID :: "+page.getId());
+			AuditProgressUpdate audit_update = new AuditProgressUpdate(audit_record_msg.getAccountId(),
+																		audit_record.getId(), 
+																		(1.0 / 6.0), 
+																		"checking images for alt text", 
+																		AuditCategory.CONTENT,
+																		AuditLevel.PAGE, 
+																		audit_record_msg.getDomainId());
+
+			//getContext().getParent().tell(audit_update, getSelf());
+			String audit_record_json = mapper.writeValueAsString(audit_update);
+			pubSubPageAuditPublisherImpl.publish(audit_record_json);
+			  
+			try {
+				Audit alt_text_audit = image_alt_text_auditor.execute(page, audit_record, null);
+				AuditProgressUpdate audit_update2 = new AuditProgressUpdate(audit_record_msg.getAccountId(),
+																			audit_record.getId(), 
+																			(2.0 / 6.0), 
+																			"Reviewing content for readability",
+																			AuditCategory.CONTENT, 
+																			AuditLevel.PAGE, 
+																			audit_record_msg.getDomainId());
+
+				//getContext().getParent().tell(audit_update2, getSelf());
+				audit_record_service.addAudit(audit_record_msg.getPageAuditId(), alt_text_audit.getId());
+				audit_record_json = mapper.writeValueAsString(audit_update2);
+					
+				pubSubPageAuditPublisherImpl.publish(audit_record_json);	
+			} catch (Exception e) {
+				AuditError audit_err = new AuditError(audit_record_msg.getAccountId(), 
+						  							  audit_record.getId(),
+													  "An error occurred while reviewing images for uniqueness", 
+													  AuditCategory.CONTENT,
+													  (2.0 / 6.0),
+													  audit_record_msg.getDomainId());
+				
+				//getContext().getParent().tell(audit_err, getSelf());
+				e.printStackTrace();
+				audit_record_json = mapper.writeValueAsString(audit_err);
+				pubSubErrorPublisherImpl.publish(audit_record_json);
+			}
+
+			try {
+				Audit readability_audit = readability_auditor.execute(page, audit_record, null);
+				AuditProgressUpdate audit_update3 = new AuditProgressUpdate(audit_record_msg.getAccountId(),
+																			audit_record.getId(), 
+																			(3.0 / 6.0), 
+																			"Reviewing paragraph length", 
+																			AuditCategory.CONTENT,
+																			AuditLevel.PAGE, 
+																			audit_record_msg.getDomainId());
+
+				 audit_record_service.addAudit(audit_record_msg.getPageAuditId(), readability_audit.getId());
+				 audit_record_json = mapper.writeValueAsString(audit_update3);
+					
+				 pubSubPageAuditPublisherImpl.publish(audit_record_json);
+			} catch (Exception e) {
+				AuditError audit_err = new AuditError(audit_record_msg.getAccountId(), 
+													  audit_record.getId(),
+													  "An error occurred while reviewing images for uniqueness", 
+													  AuditCategory.CONTENT,
+													  (3.0 / 6.0),
+													  audit_record_msg.getDomainId());
+				
+				audit_record_json = mapper.writeValueAsString(audit_err);
+				pubSubErrorPublisherImpl.publish(audit_record_json);
+				e.printStackTrace();
+			}
+
+			try {
+				Audit paragraph_audit = paragraph_auditor.execute(page, audit_record, null);
+				AuditProgressUpdate audit_update4 = new AuditProgressUpdate(audit_record_msg.getAccountId(),
+																			audit_record.getId(), 
+																			(4.0/6.0), 
+																			"Content Audit Compelete!", 
+																			AuditCategory.CONTENT,
+																			AuditLevel.PAGE, 
+																			audit_record_msg.getDomainId());
+
+				audit_record_service.addAudit(audit_record_msg.getPageAuditId(), paragraph_audit.getId());
+				audit_record_json = mapper.writeValueAsString(audit_update4);
+				
+				pubSubPageAuditPublisherImpl.publish(audit_record_json);
+			} catch (Exception e) {
+				AuditError audit_err = new AuditError(audit_record_msg.getAccountId(), 
+													  audit_record.getId(),
+													  "An error occurred while reviewing images for uniqueness", 
+													  AuditCategory.CONTENT,
+													  (4.0 / 6.0),
+													  audit_record_msg.getDomainId());
+				
+				//getContext().getParent().tell(audit_err, getSelf());
+				audit_record_json = mapper.writeValueAsString(audit_err);
+				pubSubErrorPublisherImpl.publish(audit_record_json);
+				e.printStackTrace();
+			}
+
+			try {
+				Audit image_copyright_audit = image_audit.execute(page, audit_record, null);
+				AuditProgressUpdate audit_update5 = new AuditProgressUpdate(audit_record_msg.getAccountId(),
+																			audit_record.getId(), 
+																			(5.0 / 6.0), 
+																			"Reviewing images for uniqueness", 
+																			AuditCategory.CONTENT,
+																			AuditLevel.PAGE, 
+																			audit_record_msg.getDomainId());
+
+				//getSender().tell(audit_update5, getSelf());
+				audit_record_service.addAudit(audit_record_msg.getPageAuditId(), image_copyright_audit.getId());
+				audit_record_json = mapper.writeValueAsString(audit_update5);
+					
+				pubSubPageAuditPublisherImpl.publish(audit_record_json);
+			} catch (Exception e) {
+				AuditError audit_err = new AuditError(audit_record_msg.getAccountId(), 
+													  audit_record.getId(),
+													  "An error occurred while reviewing images for uniqueness", 
+													  AuditCategory.CONTENT,
+													  (5.0 / 6.0),
+													  audit_record_msg.getDomainId());
+				
+				audit_record_json = mapper.writeValueAsString(audit_err);
+				
+				pubSubErrorPublisherImpl.publish(audit_record_json);
+				e.printStackTrace();
+			}
+			
+			try {
+				Audit image_policy_result = image_policy_audit.execute(page, audit_record, null);
+				AuditProgressUpdate audit_update6 = new AuditProgressUpdate(audit_record_msg.getAccountId(),
+																			audit_record.getId(), 
+																			1, 
+																			"Reviewing images for compliance with domain policy", 
+																			AuditCategory.CONTENT,
+																			AuditLevel.PAGE, 
+																			audit_record_msg.getDomainId());
+
+				audit_record_service.addAudit(audit_record_msg.getPageAuditId(), image_policy_result.getId());
+				audit_record_json = mapper.writeValueAsString(audit_update6);
+					
+				pubSubPageAuditPublisherImpl.publish(audit_record_json);
+			} catch (Exception e) {
+				AuditError audit_err = new AuditError(audit_record_msg.getAccountId(), 
+													  audit_record.getId(),
+													  "An error occurred while reviewing images for uniqueness", 
+													  AuditCategory.CONTENT,
+													  1.0,
+													  audit_record_msg.getDomainId());
+				
+				audit_record_json = mapper.writeValueAsString(audit_err);
+				
+				pubSubErrorPublisherImpl.publish(audit_record_json);
+				e.printStackTrace();
+			}
+			
+		} catch (Exception e) {
+			log.error("exception caught during content audit");
+			e.printStackTrace();
+			log.error("-------------------------------------------------------------");
+			log.error("-------------------------------------------------------------");
+			log.error("THERE WAS AN ISSUE DURING CONTENT AUDIT");
+			log.error("-------------------------------------------------------------");
+			log.error("-------------------------------------------------------------");
+		} finally {
+			AuditProgressUpdate audit_update = new AuditProgressUpdate(audit_record_msg.getAccountId(),
+																		audit_record_msg.getPageAuditId(),
+																		1.0, 
+																		"Content Audit Compelete!",
+																		AuditCategory.CONTENT, 
+																		AuditLevel.PAGE, 
+																		audit_record_msg.getDomainId());
+
+			String audit_record_json = mapper.writeValueAsString(audit_update);
+			
+			pubSubErrorPublisherImpl.publish(audit_record_json);
+		}
 	
-		AuditRecord audit_record = new PageAuditRecord(ExecutionStatus.BUILDING_PAGE, true);
-		
-		audit_record = audit_record_service.save(audit_record);
-		audit_record_service.addPageAuditToDomainAudit(audit_record_msg.getDomainAuditId(), audit_record.getId());
-		
-		audit_record_service.addPageToAuditRecord(audit_record.getId(), audit_record_msg.getPageId());
-		
-		Map<String, String> attributeMap = new HashMap<String, String>();
-		attributeMap.put("accountId", audit_record_msg.getAccountId());
-		attributeMap.put("domainAuditId", audit_record_msg.getDomainAuditId()+"");
-		attributeMap.put("pageAuditId", audit_record.getId()+"");
-		attributeMap.put("pageId", audit_record_msg.getPageId()+"");
-		
-		/*
-	    PubsubMessage pubsubMessage = PubsubMessage.newBuilder()
-	            .putAllAttributes(attributeMap)
-	            .setData(ByteString.copyFromUtf8("Audit record not found"))
-	            .setMessageId(UUID.randomUUID().toString())
-	            .build();
-	    */
-		JsonMapper mapper = new JsonMapper().builder().addModule(new JavaTimeModule()).build();;
-	    String audit_record_json = mapper.writeValueAsString(attributeMap);
-				
-		//TODO: SEND PUB SUB MESSAGE THAT AUDIT RECORD NOT FOUND WITH PAGE DATA EXTRACTION MESSAGE
-		pubSubPublisherImpl.publish(audit_record_json);
-		
-		/*
-		log.warn("Initiating page audit = "+audit_record.getId());
-		ActorRef audit_manager = actor_system.actorOf(SpringExtProvider.get(actor_system)
-	   												.props("singlePageAuditManager"), "singlePageAuditManager"+UUID.randomUUID());
-		audit_manager.tell(message, ActorRef.noSender());
-		*/
-    }catch(Exception e) {
-    	e.printStackTrace();
-    	//send audit error message
-    	Map<String, String> attributeMap = new HashMap<>();
-		attributeMap.put("accountId", audit_record_msg.getAccountId());
-		attributeMap.put("domainAuditId", audit_record_msg.getDomainAuditId()+"");
-		attributeMap.put("pageId", audit_record_msg.getPageId()+"");
-		
-		/*
-	    PubsubMessage pubsubMessage = PubsubMessage.newBuilder()
-	            .putAllAttributes(attributeMap)
-	            .setData(ByteString.copyFromUtf8("Audit record not found"))
-	            .setMessageId(UUID.randomUUID().toString())
-	            .build();
-	    */
-		JsonMapper mapper = new JsonMapper().builder().addModule(new JavaTimeModule()).build();;
-	    String audit_record_json = mapper.writeValueAsString(attributeMap);
-				
-		pubSubPublisherImpl.publish(audit_record_json);
-    }
     return new ResponseEntity("Successfully sent message to audit manager", HttpStatus.OK);
     
     /*

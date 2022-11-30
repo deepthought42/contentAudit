@@ -18,7 +18,7 @@ import org.slf4j.LoggerFactory;
 @PropertySources({
 	@PropertySource("classpath:application.properties")
 })
-@EnableNeo4jRepositories("com.looksee.audit_service.models.repository")
+@EnableNeo4jRepositories("com.looksee.audit.contentAudit.models.repository")
 @EntityScan(basePackages = { "com.looksee.audit.contentAudit.models"} )
 public class Application {
 	@SuppressWarnings("unused")
