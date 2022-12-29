@@ -8,7 +8,6 @@ import org.springframework.data.neo4j.core.schema.Node;
 @Node
 public class Screenshot extends LookseeObject {
 	
-	private String key;
 	private String browser_name;
 	private String url;
 	private String checksum;
@@ -32,14 +31,6 @@ public class Screenshot extends LookseeObject {
 
 	public void setScreenshotUrl(String url) {
 		this.url = url;
-	}
-
-	public String getKey() {
-		return this.key;
-	}
-
-	public void setKey(String key) {
-		this.key = key;
 	}
 
 	public String getBrowser() {

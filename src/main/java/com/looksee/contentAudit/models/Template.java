@@ -17,7 +17,6 @@ import com.looksee.contentAudit.models.enums.TemplateType;
 public class Template extends LookseeObject {
 
 	private String type;
-	private String key;
 	private String template;
 	
 	@Relationship(type = "MATCHES")
@@ -48,14 +47,6 @@ public class Template extends LookseeObject {
 
 	public void setType(TemplateType type) {
 		this.type = type.toString();
-	}
-
-	public String getKey() {
-		return key;
-	}
-
-	public void setKey(String key) {
-		this.key = key;
 	}
 
 	public String getTemplate() {

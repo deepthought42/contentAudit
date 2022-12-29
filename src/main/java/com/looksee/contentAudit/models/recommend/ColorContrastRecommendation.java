@@ -1,4 +1,4 @@
-package com.looksee.visualDesign.models.recommend;
+package com.looksee.contentAudit.models.recommend;
 
 public class ColorContrastRecommendation extends Recommendation{
 	private String color1_rgb;

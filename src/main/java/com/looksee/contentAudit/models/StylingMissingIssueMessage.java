@@ -4,7 +4,7 @@ import java.util.Set;
 
 import com.looksee.contentAudit.models.enums.ObservationType;
 import com.looksee.contentAudit.models.enums.Priority;
-import com.looksee.visualDesign.models.recommend.Recommendation;
+import com.looksee.contentAudit.models.recommend.Recommendation;
 
 
 /**

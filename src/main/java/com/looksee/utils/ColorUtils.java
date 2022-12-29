@@ -17,7 +17,7 @@ import org.slf4j.LoggerFactory;
 import com.looksee.contentAudit.models.ColorData;
 import com.looksee.contentAudit.models.ColorUsageStat;
 import com.looksee.contentAudit.models.ElementState;
-import com.looksee.visualDesign.models.recommend.ColorContrastRecommendation;
+import com.looksee.contentAudit.models.recommend.ColorContrastRecommendation;
 
 public class ColorUtils {
 	@SuppressWarnings("unused")

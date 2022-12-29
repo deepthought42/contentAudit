@@ -66,10 +66,10 @@ public class AuditController {
 	private PageStateService page_state_service;
 	
 	@Autowired
-	private PubSubAuditRecordPublisherImpl pubSubPageAuditPublisherImpl;
+	private PubSubAuditRecordPublisherImpl audit_record_topic;
 	
 	@Autowired
-	private PubSubErrorPublisherImpl pubSubErrorPublisherImpl;
+	private PubSubErrorPublisherImpl error_topic;
 	
 	@Autowired
 	private ImageAltTextAudit image_alt_text_auditor;
@@ -130,7 +130,7 @@ public class AuditController {
 
 			//getContext().getParent().tell(audit_update, getSelf());
 			String audit_record_json = mapper.writeValueAsString(audit_update);
-			pubSubPageAuditPublisherImpl.publish(audit_record_json);
+			audit_record_topic.publish(audit_record_json);
 			  
 			try {
 				Audit alt_text_audit = image_alt_text_auditor.execute(page, audit_record, null);
@@ -146,7 +146,7 @@ public class AuditController {
 				audit_record_service.addAudit(audit_record_msg.getPageAuditId(), alt_text_audit.getId());
 				audit_record_json = mapper.writeValueAsString(audit_update2);
 					
-				pubSubPageAuditPublisherImpl.publish(audit_record_json);	
+				audit_record_topic.publish(audit_record_json);	
 			} catch (Exception e) {
 				AuditError audit_err = new AuditError(audit_record_msg.getAccountId(), 
 						  							  audit_record.getId(),
@@ -158,7 +158,7 @@ public class AuditController {
 				//getContext().getParent().tell(audit_err, getSelf());
 				e.printStackTrace();
 				audit_record_json = mapper.writeValueAsString(audit_err);
-				pubSubErrorPublisherImpl.publish(audit_record_json);
+				error_topic.publish(audit_record_json);
 			}
 
 			try {
@@ -174,7 +174,7 @@ public class AuditController {
 				 audit_record_service.addAudit(audit_record_msg.getPageAuditId(), readability_audit.getId());
 				 audit_record_json = mapper.writeValueAsString(audit_update3);
 					
-				 pubSubPageAuditPublisherImpl.publish(audit_record_json);
+				 audit_record_topic.publish(audit_record_json);
 			} catch (Exception e) {
 				AuditError audit_err = new AuditError(audit_record_msg.getAccountId(), 
 													  audit_record.getId(),
@@ -184,7 +184,7 @@ public class AuditController {
 													  audit_record_msg.getDomainId());
 				
 				audit_record_json = mapper.writeValueAsString(audit_err);
-				pubSubErrorPublisherImpl.publish(audit_record_json);
+				error_topic.publish(audit_record_json);
 				e.printStackTrace();
 			}
 
@@ -201,7 +201,7 @@ public class AuditController {
 				audit_record_service.addAudit(audit_record_msg.getPageAuditId(), paragraph_audit.getId());
 				audit_record_json = mapper.writeValueAsString(audit_update4);
 				
-				pubSubPageAuditPublisherImpl.publish(audit_record_json);
+				audit_record_topic.publish(audit_record_json);
 			} catch (Exception e) {
 				AuditError audit_err = new AuditError(audit_record_msg.getAccountId(), 
 													  audit_record.getId(),
@@ -212,7 +212,7 @@ public class AuditController {
 				
 				//getContext().getParent().tell(audit_err, getSelf());
 				audit_record_json = mapper.writeValueAsString(audit_err);
-				pubSubErrorPublisherImpl.publish(audit_record_json);
+				error_topic.publish(audit_record_json);
 				e.printStackTrace();
 			}
 
@@ -230,7 +230,7 @@ public class AuditController {
 				audit_record_service.addAudit(audit_record_msg.getPageAuditId(), image_copyright_audit.getId());
 				audit_record_json = mapper.writeValueAsString(audit_update5);
 					
-				pubSubPageAuditPublisherImpl.publish(audit_record_json);
+				audit_record_topic.publish(audit_record_json);
 			} catch (Exception e) {
 				AuditError audit_err = new AuditError(audit_record_msg.getAccountId(), 
 													  audit_record.getId(),
@@ -241,7 +241,7 @@ public class AuditController {
 				
 				audit_record_json = mapper.writeValueAsString(audit_err);
 				
-				pubSubErrorPublisherImpl.publish(audit_record_json);
+				error_topic.publish(audit_record_json);
 				e.printStackTrace();
 			}
 			
@@ -258,7 +258,7 @@ public class AuditController {
 				audit_record_service.addAudit(audit_record_msg.getPageAuditId(), image_policy_result.getId());
 				audit_record_json = mapper.writeValueAsString(audit_update6);
 					
-				pubSubPageAuditPublisherImpl.publish(audit_record_json);
+				audit_record_topic.publish(audit_record_json);
 			} catch (Exception e) {
 				AuditError audit_err = new AuditError(audit_record_msg.getAccountId(), 
 													  audit_record.getId(),
@@ -269,7 +269,7 @@ public class AuditController {
 				
 				audit_record_json = mapper.writeValueAsString(audit_err);
 				
-				pubSubErrorPublisherImpl.publish(audit_record_json);
+				error_topic.publish(audit_record_json);
 				e.printStackTrace();
 			}
 			
@@ -292,7 +292,7 @@ public class AuditController {
 
 			String audit_record_json = mapper.writeValueAsString(audit_update);
 			
-			pubSubErrorPublisherImpl.publish(audit_record_json);
+			error_topic.publish(audit_record_json);
 		}
 	
     return new ResponseEntity("Successfully sent message to audit manager", HttpStatus.OK);

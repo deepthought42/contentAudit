@@ -1,4 +1,4 @@
-package com.looksee.visualDesign.models.recommend;
+package com.looksee.contentAudit.models.recommend;
 
 import java.util.UUID;
 
