@@ -11,8 +11,8 @@ import org.jsoup.nodes.Element;
 import org.openqa.selenium.Dimension;
 import org.openqa.selenium.WebElement;
 
-import com.looksee.audit.contentAudit.models.ColorData;
-import com.looksee.audit.contentAudit.models.ElementState;
+import com.looksee.contentAudit.models.ColorData;
+import com.looksee.contentAudit.models.ElementState;
 
 
 public class ElementStateUtils {

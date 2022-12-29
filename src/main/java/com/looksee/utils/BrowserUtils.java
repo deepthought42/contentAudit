@@ -39,16 +39,16 @@ import org.openqa.selenium.WebElement;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import com.looksee.audit.contentAudit.gcp.GoogleCloudStorage;
-import com.looksee.audit.contentAudit.models.Browser;
-import com.looksee.audit.contentAudit.models.ColorData;
-import com.looksee.audit.contentAudit.models.ElementState;
-import com.looksee.audit.contentAudit.models.ImageElementState;
-import com.looksee.audit.contentAudit.models.PageLoadAnimation;
-import com.looksee.audit.contentAudit.models.PageState;
-import com.looksee.audit.contentAudit.models.enums.BrowserEnvironment;
-import com.looksee.audit.contentAudit.models.enums.BrowserType;
-import com.looksee.audit.contentAudit.services.BrowserService;
+import com.looksee.contentAudit.gcp.GoogleCloudStorage;
+import com.looksee.contentAudit.models.Browser;
+import com.looksee.contentAudit.models.ColorData;
+import com.looksee.contentAudit.models.ElementState;
+import com.looksee.contentAudit.models.ImageElementState;
+import com.looksee.contentAudit.models.PageLoadAnimation;
+import com.looksee.contentAudit.models.PageState;
+import com.looksee.contentAudit.models.enums.BrowserEnvironment;
+import com.looksee.contentAudit.models.enums.BrowserType;
+import com.looksee.contentAudit.services.BrowserService;
 
 
 /**
@@ -340,10 +340,10 @@ public class BrowserUtils {
 	 * @param source valid html source
 	 * @return {@link List list} of link urls
 	 */
-	public static List<com.looksee.audit.contentAudit.models.Element> extractLinks(List<com.looksee.audit.contentAudit.models.Element> elements) {
-		List<com.looksee.audit.contentAudit.models.Element> links = new ArrayList<>();
+	public static List<com.looksee.contentAudit.models.Element> extractLinks(List<com.looksee.contentAudit.models.Element> elements) {
+		List<com.looksee.contentAudit.models.Element> links = new ArrayList<>();
 		
-		for(com.looksee.audit.contentAudit.models.Element element : elements) {
+		for(com.looksee.contentAudit.models.Element element : elements) {
 			if(element.getName().equalsIgnoreCase("a")) {
 				links.add(element);
 			}

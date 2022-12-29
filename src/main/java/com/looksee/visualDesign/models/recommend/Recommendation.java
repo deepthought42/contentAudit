@@ -2,7 +2,7 @@ package com.looksee.visualDesign.models.recommend;
 
 import java.util.UUID;
 
-import com.looksee.audit.contentAudit.models.LookseeObject;
+import com.looksee.contentAudit.models.LookseeObject;
 
 
 public class Recommendation extends LookseeObject{

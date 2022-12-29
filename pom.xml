@@ -318,7 +318,7 @@
 	          <version>${springboot.version}</version>
 	          <configuration>
 	             <fork>true</fork>
-	             <mainClass>com.looksee.audit_service.Application</mainClass>
+	             <mainClass>com.looksee.contentAudit.Application</mainClass>
 	          </configuration>
 	          <executions>
 	            <execution>
