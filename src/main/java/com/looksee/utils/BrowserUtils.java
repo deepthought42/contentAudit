@@ -1095,17 +1095,16 @@ public class BrowserUtils {
 		return filtered_elements;
 	}
 
-	public static List<ImageElementState> getImageElements(List<ElementState> element_states) {
+	public static List<ElementState> getImageElements(List<ElementState> element_states) {
 		assert element_states != null;
 		
-		List<ElementState> elements = element_states.parallelStream().filter(p ->p.getName().equalsIgnoreCase("img")).distinct().collect(Collectors.toList());
+		List<ElementState> elements = element_states.parallelStream()
+														.filter(p -> p.getName().equalsIgnoreCase("img"))
+														.distinct()
+														.collect(Collectors.toList());
+		log.warn("image elements to be audited = "+elements.size());
 		
-		List<ImageElementState> img_elements = new ArrayList<>();
-		for(ElementState element : elements) {
-			img_elements.add((ImageElementState)element);
-		}
-		
-		return img_elements;
+		return elements;
 	}
 	
 	/**

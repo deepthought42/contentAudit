@@ -9,6 +9,7 @@ import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
+import com.looksee.contentAudit.models.repository.DomainRepository;
 import com.looksee.contentAudit.models.AuditRecord;
 import com.looksee.contentAudit.models.DesignSystem;
 import com.looksee.contentAudit.models.Domain;
@@ -17,7 +18,6 @@ import com.looksee.contentAudit.models.Element;
 import com.looksee.contentAudit.models.Form;
 import com.looksee.contentAudit.models.PageState;
 import com.looksee.contentAudit.models.TestUser;
-import com.looksee.contentAudit.models.repository.DomainRepository;
 
 @Service
 public class DomainService {

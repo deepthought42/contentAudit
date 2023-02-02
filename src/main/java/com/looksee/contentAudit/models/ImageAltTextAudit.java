@@ -84,7 +84,7 @@ public class ImageAltTextAudit implements IExecutablePageStateAudit {
 
 		//score each link element
 		for(ElementState image_element : image_elements) {
-	
+			
 			Document jsoup_doc = Jsoup.parseBodyFragment(image_element.getOuterHtml(), page_state.getUrl());
 			Element element = jsoup_doc.getElementsByTag(tag_name).first();
 			
@@ -192,7 +192,7 @@ public class ImageAltTextAudit implements IExecutablePageStateAudit {
 								 true);
 		audit_service.save(audit);
 		audit_service.addAllIssues(audit.getId(), issue_messages);
+		
 		return audit;
-		//the contstant 2 in this equation is the exact number of boolean checks for this audit
 	}
 }

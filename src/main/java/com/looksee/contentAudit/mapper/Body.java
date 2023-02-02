@@ -16,7 +16,6 @@
 
 package com.looksee.contentAudit.mapper;
 
-
 // Body.Message is the payload of a Pub/Sub event. Please refer to the docs for
 // additional information regarding Pub/Sub events.
 public class Body {
@@ -31,10 +30,6 @@ public class Body {
 
   public void setMessage(Message message) {
     this.message = message;
-  }
-  
-  public String toString() {
-	  return "{message:"+message.toString()+"}";
   }
 
   public class Message {
@@ -51,10 +46,6 @@ public class Body {
       this.data = data;
     }
 
-    public String toString() {
-    	return "{ messageId:"+messageId +", publishTime:"+publishTime+", data:" + data + "}";
-    }
-    
     public String getMessageId() {
       return messageId;
     }

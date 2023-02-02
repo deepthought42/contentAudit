@@ -53,7 +53,7 @@ public class ImageAudit implements IExecutablePageStateAudit {
 		//get all elements that are text containers
 		//List<ElementState> elements = page_state_service.getElementStates(page_state.getKey());
 		//filter elements that aren't text elements
-		List<ImageElementState> element_list = BrowserUtils.getImageElements(page_state.getElements());
+		List<ElementState> element_list = BrowserUtils.getImageElements(page_state.getElements());
 		
 		Score copyright_score = calculateCopyrightScore(element_list);
 		String why_it_matters = "";
@@ -85,7 +85,7 @@ public class ImageAudit implements IExecutablePageStateAudit {
 	 * @param element
 	 * @return
 	 */
-	public Score calculateCopyrightScore(List<ImageElementState> elements) {
+	public Score calculateCopyrightScore(List<ElementState> elements) {
 		int points_earned = 0;
 		int max_points = 0;
 		Set<UXIssueMessage> issue_messages = new HashSet<>();

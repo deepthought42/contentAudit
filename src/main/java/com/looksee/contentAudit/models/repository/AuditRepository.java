@@ -12,6 +12,7 @@ import com.looksee.contentAudit.models.Audit;
 import com.looksee.contentAudit.models.ElementState;
 import com.looksee.contentAudit.models.UXIssueMessage;
 
+
 /**
  * Repository interface for Spring Data Neo4j to handle interactions with {@link Audit} objects
  */
@@ -26,7 +27,7 @@ public interface AuditRepository extends Neo4jRepository<Audit, Long> {
 	public UXIssueMessage addIssueMessage(@Param("key") String key, 
 									  @Param("msg_key") String issue_msg_key);
 
-	@Query("MATCH (audit:Audit) WITH audit MATCH (msg:UXIssueMessage) WHERE id(audit)=$audit_id AND id(msg) IN $issue_ids MERGE audit_issue=(audit)-[:HAS]->(msg) RETURN msg")
+	@Query("MATCH (audit:Audit) WITH audit MATCH (msg:UXIssueMessage) WHERE id(audit)=$audit_id AND id(msg) IN $issue_ids MERGE audit_issue=(audit)-[:HAS]->(msg) RETURN audit LIMIT 1")
 	public void addAllIssues(@Param("audit_id") long audit_id, @Param("issue_ids") List<Long> issue_ids);
 
 	@Query("MATCH (audit:Audit{name:$audit_name})-[]->(msg:UXIssueMessage) MATCH (msg)-[]->(element:ElementState) WHERE msg.score >= $score RETURN element ORDER BY element.created_at DESC LIMIT 50")

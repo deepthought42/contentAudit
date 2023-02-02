@@ -8,9 +8,12 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.data.neo4j.core.schema.Relationship;
 
+import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
+import com.fasterxml.jackson.annotation.JsonTypeName;
 import com.looksee.contentAudit.models.enums.ElementClassification;
 
-
+@JsonIgnoreProperties(ignoreUnknown = true)
+@JsonTypeName("IMAGE_ELEMENT")
 public class ImageElementState extends ElementState {
 	@SuppressWarnings("unused")
 	private static Logger log = LoggerFactory.getLogger(ImageElementState.class);
@@ -22,13 +25,13 @@ public class ImageElementState extends ElementState {
 	private Set<Label> labels;
 	
 	@Relationship(type="HAS")
-	private Set<ImageLandmarkInfo> landmark_info_set;
+	private Set<ImageLandmarkInfo> landmarkInfoSet;
 	
 	@Relationship(type="HAS")
 	private Set<ImageFaceAnnotation> faces;
 	
 	@Relationship(type="HAS")
-	private ImageSearchAnnotation image_search_set;
+	private ImageSearchAnnotation imageSearchSet;
 	
 	private String adult;
 	private String racy;
@@ -38,7 +41,7 @@ public class ImageElementState extends ElementState {
 		super();
 		this.logos = new HashSet<>();
 		this.labels = new HashSet<>();
-		this.landmark_info_set = new HashSet<>();
+		this.landmarkInfoSet = new HashSet<>();
 		this.faces = new HashSet<>();
 		setImageFlagged(false);
 	}
@@ -87,7 +90,7 @@ public class ImageElementState extends ElementState {
 				!image_search.getFullMatchingImages().isEmpty());
 		setLandmarkInfoSet(landmark_info_set);
 		setFaces(faces);
-		setImageSearchSet(image_search_set);
+		setImageSearchSet(imageSearchSet);
 		setLogos(logos);
 		setLabels(labels);
 		setAdult(safe_search_annotation.getAdult());
@@ -108,10 +111,10 @@ public class ImageElementState extends ElementState {
 		this.labels = labels;
 	}
 	public Set<ImageLandmarkInfo> getLandmarkInfoSet() {
-		return landmark_info_set;
+		return landmarkInfoSet;
 	}
 	public void setLandmarkInfoSet(Set<ImageLandmarkInfo> landmark_info_set) {
-		this.landmark_info_set = landmark_info_set;
+		this.landmarkInfoSet = landmark_info_set;
 	}
 	public Set<ImageFaceAnnotation> getFaces() {
 		return faces;
@@ -120,10 +123,10 @@ public class ImageElementState extends ElementState {
 		this.faces = faces;
 	}
 	public ImageSearchAnnotation getImageSearchSet() {
-		return image_search_set;
+		return imageSearchSet;
 	}
 	public void setImageSearchSet(ImageSearchAnnotation image_search_set) {
-		this.image_search_set = image_search_set;
+		this.imageSearchSet = image_search_set;
 	}
 
 	public boolean isAdultContent() {

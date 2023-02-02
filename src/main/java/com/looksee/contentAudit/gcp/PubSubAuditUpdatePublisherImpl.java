@@ -6,11 +6,12 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
 
 @Component
-public class PubSubAuditRecordPublisherImpl extends PubSubPublisher {
+public class PubSubAuditUpdatePublisherImpl extends PubSubPublisher {
 
-    private static Logger LOG = LoggerFactory.getLogger(PubSubAuditRecordPublisherImpl.class);
+    @SuppressWarnings("unused")
+	private static Logger LOG = LoggerFactory.getLogger(PubSubAuditUpdatePublisherImpl.class);
 
-    @Value("${pubsub.page_audit_topic}")
+    @Value("${pubsub.audit_update}")
     private String topic;
     
     @Override

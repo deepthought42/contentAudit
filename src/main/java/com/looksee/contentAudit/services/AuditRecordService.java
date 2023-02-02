@@ -10,6 +10,9 @@ import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
+import com.looksee.contentAudit.models.enums.AuditCategory;
+import com.looksee.contentAudit.models.enums.ExecutionStatus;
+import com.looksee.contentAudit.models.repository.AuditRecordRepository;
 import com.looksee.contentAudit.models.Audit;
 import com.looksee.contentAudit.models.AuditRecord;
 import com.looksee.contentAudit.models.DesignSystem;
@@ -18,9 +21,6 @@ import com.looksee.contentAudit.models.Label;
 import com.looksee.contentAudit.models.PageAuditRecord;
 import com.looksee.contentAudit.models.PageState;
 import com.looksee.contentAudit.models.UXIssueMessage;
-import com.looksee.contentAudit.models.enums.AuditCategory;
-import com.looksee.contentAudit.models.enums.ExecutionStatus;
-import com.looksee.contentAudit.models.repository.AuditRecordRepository;
 
 import io.github.resilience4j.retry.annotation.Retry;
 
@@ -373,5 +373,15 @@ public class AuditRecordService {
 	 */
 	public PageState findPageWithUrl(long audit_record_id, String url) {
 		return audit_record_repo.findPageWithUrl(audit_record_id, url);
+	}
+	
+	/**
+	 * Retrieves {@link PageState} with given URL for {@link DomainAuditRecord}  
+	 * @param audit_record_id
+	 * @param current_url
+	 * @return
+	 */
+	public AuditRecord findPageWithId(long audit_record_id, long page_id) {
+		return audit_record_repo.findPageWithId(audit_record_id, page_id);
 	}
 }

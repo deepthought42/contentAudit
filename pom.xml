@@ -1,8 +1,8 @@
 <project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 https://maven.apache.org/xsd/maven-4.0.0.xsd">
   	<modelVersion>4.0.0</modelVersion>
   	<groupId>com.looksee</groupId>
-  	<artifactId>contentAudit</artifactId>
-  	<version>0.0.1-SNAPSHOT</version>
+  	<artifactId>content-audit</artifactId>
+  	<version>0.0.1</version>
   	<packaging>jar</packaging>
   
     <properties>
@@ -297,6 +297,22 @@
 		    <artifactId>whelk-flesch-kincaid</artifactId>
 		    <version>0.1.6</version>
 		</dependency>
+		
+		<!-- https://mvnrepository.com/artifact/edu.stanford.nlp/stanford-corenlp -->
+		<dependency>
+		    <groupId>edu.stanford.nlp</groupId>
+		    <artifactId>stanford-corenlp</artifactId>
+		    <version>4.2.2</version>
+		</dependency>
+		
+		<!-- https://mvnrepository.com/artifact/edu.stanford.nlp/stanford-pos-tagger -->
+		<dependency>
+		    <groupId>edu.stanford.nlp</groupId>
+		    <artifactId>stanford-corenlp</artifactId>
+			<version>4.2.2</version>
+		    <classifier>models</classifier>
+		</dependency>
+		
 	  </dependencies>
 
 	  <build>

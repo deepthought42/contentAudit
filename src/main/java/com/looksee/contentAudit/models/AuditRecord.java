@@ -5,6 +5,8 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.UUID;
 
+import org.springframework.data.neo4j.core.schema.Node;
+
 import com.looksee.contentAudit.models.enums.AuditLevel;
 import com.looksee.contentAudit.models.enums.ExecutionStatus;
 
@@ -12,6 +14,7 @@ import com.looksee.contentAudit.models.enums.ExecutionStatus;
 /**
  * Record detailing an set of {@link Audit audits}.
  */
+@Node
 public class AuditRecord extends LookseeObject {
 	private String url;
 	

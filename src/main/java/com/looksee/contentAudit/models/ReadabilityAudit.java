@@ -73,7 +73,7 @@ public class ReadabilityAudit implements IExecutablePageStateAudit {
 		for(ElementState element: page_state.getElements()) {
 			if(element.getName().contentEquals("button") 
 					|| element.getName().contentEquals("a") 
-					|| element.getOwnedText().isEmpty() 
+					|| (element.getOwnedText() == null || element.getOwnedText().isEmpty()) 
 					|| element.getAllText().split(" ").length <= 3
 			) {
 				continue;

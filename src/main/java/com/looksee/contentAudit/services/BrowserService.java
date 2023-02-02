@@ -43,6 +43,10 @@ import org.springframework.stereotype.Component;
 import org.springframework.web.bind.annotation.ResponseStatus;
 
 import com.google.cloud.storage.StorageException;
+import com.looksee.contentAudit.models.enums.BrowserEnvironment;
+import com.looksee.contentAudit.models.enums.BrowserType;
+import com.looksee.contentAudit.models.enums.ElementClassification;
+import com.looksee.contentAudit.models.enums.TemplateType;
 import com.looksee.contentAudit.gcp.CloudVisionUtils;
 import com.looksee.contentAudit.gcp.GoogleCloudStorage;
 import com.looksee.contentAudit.models.Browser;
@@ -57,10 +61,6 @@ import com.looksee.contentAudit.models.Label;
 import com.looksee.contentAudit.models.Logo;
 import com.looksee.contentAudit.models.PageState;
 import com.looksee.contentAudit.models.Template;
-import com.looksee.contentAudit.models.enums.BrowserEnvironment;
-import com.looksee.contentAudit.models.enums.BrowserType;
-import com.looksee.contentAudit.models.enums.ElementClassification;
-import com.looksee.contentAudit.models.enums.TemplateType;
 import com.looksee.utils.BrowserUtils;
 import com.looksee.utils.ImageUtils;
 
