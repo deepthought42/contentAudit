@@ -11,6 +11,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import com.looksee.contentAudit.models.enums.AuditName;
+import com.looksee.contentAudit.models.enums.ElementClassification;
 import com.looksee.contentAudit.models.repository.ElementStateRepository;
 import com.looksee.contentAudit.models.repository.PageStateRepository;
 import com.looksee.contentAudit.models.Audit;
@@ -111,7 +112,7 @@ public class PageStateService {
 	public Collection<ElementState> getExpandableElements(List<ElementState> elements) {
 		List<ElementState> expandable_elements = new ArrayList<>();
 		for(ElementState elem : elements) {
-			if(elem.isLeaf()) {
+			if(ElementClassification.LEAF.equals(elem.getClassification())) {
 				expandable_elements.add(elem);
 			}
 		}

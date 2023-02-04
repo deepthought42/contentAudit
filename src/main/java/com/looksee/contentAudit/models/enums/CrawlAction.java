@@ -23,7 +23,7 @@ public enum CrawlAction {
             throw new IllegalArgumentException();
         }
         for(CrawlAction v : values()) {
-            if(value.equals(v.getShortName())) {
+            if(value.equalsIgnoreCase(v.getShortName())) {
                 return v;
             }
         }

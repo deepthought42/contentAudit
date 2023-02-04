@@ -22,7 +22,7 @@ public enum DiscoveryAction {
             throw new IllegalArgumentException();
         }
         for(DiscoveryAction v : values()) {
-            if(value.equals(v.getShortName())) {
+            if(value.equalsIgnoreCase(v.getShortName())) {
                 return v;
             }
         }

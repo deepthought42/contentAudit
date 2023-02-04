@@ -39,7 +39,6 @@ import com.looksee.contentAudit.gcp.PubSubAuditUpdatePublisherImpl;
 import com.looksee.contentAudit.gcp.PubSubErrorPublisherImpl;
 import com.looksee.contentAudit.mapper.Body;
 import com.looksee.contentAudit.models.Audit;
-import com.looksee.contentAudit.models.AuditProgressUpdate;
 import com.looksee.contentAudit.models.AuditRecord;
 import com.looksee.contentAudit.models.ImageAltTextAudit;
 import com.looksee.contentAudit.models.ImageAudit;
@@ -50,6 +49,7 @@ import com.looksee.contentAudit.models.ReadabilityAudit;
 import com.looksee.contentAudit.models.enums.AuditCategory;
 import com.looksee.contentAudit.models.enums.AuditLevel;
 import com.looksee.contentAudit.models.message.AuditError;
+import com.looksee.contentAudit.models.message.AuditProgressUpdate;
 import com.looksee.contentAudit.models.message.PageAuditMessage;
 import com.looksee.contentAudit.services.AuditRecordService;
 import com.looksee.contentAudit.services.PageStateService;
@@ -108,34 +108,37 @@ public class AuditController {
 			page.setElements(page_state_service.getElementStates(page.getId()));
 			log.warn("evaluating "+page.getElements().size()+" element state for content audit with page ID :: "+page.getId());
 			AuditProgressUpdate audit_update = new AuditProgressUpdate(audit_record_msg.getAccountId(),
-																		audit_record.getId(), 
+																		audit_record_msg.getDomainAuditRecordId(), 
 																		(1.0 / 6.0), 
 																		"checking images for alt text", 
 																		AuditCategory.CONTENT,
 																		AuditLevel.PAGE, 
-																		audit_record_msg.getDomainId());
+																		audit_record_msg.getDomainId(), 
+																		audit_record_msg.getPageAuditId());
 
-			//getContext().getParent().tell(audit_update, getSelf());
 			String audit_record_json = mapper.writeValueAsString(audit_update);
 			audit_record_topic.publish(audit_record_json);
 			  
 			try {
 				Audit alt_text_audit = image_alt_text_auditor.execute(page, audit_record, null);
 				AuditProgressUpdate audit_update2 = new AuditProgressUpdate(audit_record_msg.getAccountId(),
-																			audit_record.getId(), 
+																			audit_record_msg.getDomainAuditRecordId(), 
 																			(2.0 / 6.0), 
 																			"Reviewing content for readability",
 																			AuditCategory.CONTENT, 
 																			AuditLevel.PAGE, 
-																			audit_record_msg.getDomainId());
+																			audit_record_msg.getDomainId(), 
+																			audit_record_msg.getPageAuditId());
 
 				audit_record_service.addAudit(audit_record_msg.getPageAuditId(), alt_text_audit.getId());
+				
 				audit_record_json = mapper.writeValueAsString(audit_update2);
+				log.warn("sending audit update :: "+audit_record_json);
 					
 				audit_record_topic.publish(audit_record_json);	
 			} catch (Exception e) {
 				AuditError audit_err = new AuditError(audit_record_msg.getAccountId(), 
-						  							  audit_record.getId(),
+													  audit_record_msg.getDomainAuditRecordId(),
 													  "An error occurred while reviewing images for uniqueness", 
 													  AuditCategory.CONTENT,
 													  (2.0 / 6.0),
@@ -149,20 +152,22 @@ public class AuditController {
 			try {
 				Audit readability_audit = readability_auditor.execute(page, audit_record, null);
 				AuditProgressUpdate audit_update3 = new AuditProgressUpdate(audit_record_msg.getAccountId(),
-																			audit_record.getId(), 
+																			audit_record_msg.getDomainAuditRecordId(), 
 																			(3.0 / 6.0), 
 																			"Reviewing paragraph length", 
 																			AuditCategory.CONTENT,
 																			AuditLevel.PAGE, 
-																			audit_record_msg.getDomainId());
+																			audit_record_msg.getDomainId(), 
+																			audit_record_msg.getPageAuditId());
 
 				 audit_record_service.addAudit(audit_record_msg.getPageAuditId(), readability_audit.getId());
 				 audit_record_json = mapper.writeValueAsString(audit_update3);
+				 log.warn("readability audit :: " +audit_record_json);
 					
 				 audit_record_topic.publish(audit_record_json);
 			} catch (Exception e) {
 				AuditError audit_err = new AuditError(audit_record_msg.getAccountId(), 
-													  audit_record.getId(),
+													  audit_record_msg.getDomainAuditRecordId(),
 													  "An error occurred while reviewing images for uniqueness", 
 													  AuditCategory.CONTENT,
 													  (3.0 / 6.0),
@@ -176,20 +181,21 @@ public class AuditController {
 			try {
 				Audit paragraph_audit = paragraph_auditor.execute(page, audit_record, null);
 				AuditProgressUpdate audit_update4 = new AuditProgressUpdate(audit_record_msg.getAccountId(),
-																			audit_record.getId(), 
+																			audit_record_msg.getDomainAuditRecordId(),
 																			(4.0/6.0), 
 																			"Content Audit Compelete!", 
 																			AuditCategory.CONTENT,
 																			AuditLevel.PAGE, 
-																			audit_record_msg.getDomainId());
+																			audit_record_msg.getDomainId(),
+																			audit_record_msg.getPageAuditId());
 
 				audit_record_service.addAudit(audit_record_msg.getPageAuditId(), paragraph_audit.getId());
 				audit_record_json = mapper.writeValueAsString(audit_update4);
-				
+				log.warn("paragraph audit message :: " +audit_record_json);
 				audit_record_topic.publish(audit_record_json);
 			} catch (Exception e) {
 				AuditError audit_err = new AuditError(audit_record_msg.getAccountId(), 
-													  audit_record.getId(),
+													  audit_record_msg.getDomainAuditRecordId(),
 													  "An error occurred while reviewing images for uniqueness", 
 													  AuditCategory.CONTENT,
 													  (4.0 / 6.0),
@@ -203,20 +209,21 @@ public class AuditController {
 			try {
 				Audit image_copyright_audit = image_audit.execute(page, audit_record, null);
 				AuditProgressUpdate audit_update5 = new AuditProgressUpdate(audit_record_msg.getAccountId(),
-																			audit_record.getId(), 
+																			audit_record_msg.getDomainAuditRecordId(),
 																			(5.0 / 6.0), 
 																			"Reviewing images for uniqueness", 
 																			AuditCategory.CONTENT,
 																			AuditLevel.PAGE, 
-																			audit_record_msg.getDomainId());
+																			audit_record_msg.getDomainId(), 
+																			audit_record_msg.getPageAuditId());
 
 				audit_record_service.addAudit(audit_record_msg.getPageAuditId(), image_copyright_audit.getId());
 				audit_record_json = mapper.writeValueAsString(audit_update5);
-					
+				log.warn("image copyright audit :: "+audit_record_json);
 				audit_record_topic.publish(audit_record_json);
 			} catch (Exception e) {
 				AuditError audit_err = new AuditError(audit_record_msg.getAccountId(), 
-													  audit_record.getId(),
+													  audit_record_msg.getDomainAuditRecordId(),
 													  "An error occurred while reviewing images for uniqueness", 
 													  AuditCategory.CONTENT,
 													  (5.0 / 6.0),
@@ -231,20 +238,22 @@ public class AuditController {
 			try {
 				Audit image_policy_result = image_policy_audit.execute(page, audit_record, null);
 				AuditProgressUpdate audit_update6 = new AuditProgressUpdate(audit_record_msg.getAccountId(),
-																			audit_record.getId(), 
+																			audit_record_msg.getDomainAuditRecordId(),
 																			1, 
 																			"Reviewing images for compliance with domain policy", 
 																			AuditCategory.CONTENT,
 																			AuditLevel.PAGE, 
-																			audit_record_msg.getDomainId());
+																			audit_record_msg.getDomainId(), 
+																			audit_record_msg.getPageAuditId());
 
 				audit_record_service.addAudit(audit_record_msg.getPageAuditId(), image_policy_result.getId());
 				audit_record_json = mapper.writeValueAsString(audit_update6);
-					
+				
+				log.warn("iamge policy audit :: " + audit_record_json);
 				audit_record_topic.publish(audit_record_json);
 			} catch (Exception e) {
 				AuditError audit_err = new AuditError(audit_record_msg.getAccountId(), 
-													  audit_record.getId(),
+													  audit_record_msg.getDomainAuditRecordId(),
 													  "An error occurred while reviewing images for uniqueness", 
 													  AuditCategory.CONTENT,
 													  1.0,
@@ -266,12 +275,13 @@ public class AuditController {
 			log.error("-------------------------------------------------------------");
 		} finally {
 			AuditProgressUpdate audit_update = new AuditProgressUpdate(audit_record_msg.getAccountId(),
-																		audit_record_msg.getPageAuditId(),
+																		audit_record_msg.getDomainAuditRecordId(),
 																		1.0, 
 																		"Content Audit Compelete!",
 																		AuditCategory.CONTENT, 
 																		AuditLevel.PAGE, 
-																		audit_record_msg.getDomainId());
+																		audit_record_msg.getDomainId(), 
+																		audit_record_msg.getPageAuditId());
 
 			String audit_record_json = mapper.writeValueAsString(audit_update);
 			

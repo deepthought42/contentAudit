@@ -3,7 +3,11 @@ package com.looksee.contentAudit.models.enums;
 import com.fasterxml.jackson.annotation.JsonCreator;
 
 public enum BugType {
-	MISSING_FIELD("MISSING FIELD"), ACCESSIBILITY("ACCESSIBILITY"), PERFORMANCE("PERFORMANCE"), SEO("SEO"), BEST_PRACTICES("BEST_PRACTICES");
+	MISSING_FIELD("MISSING FIELD"), 
+	ACCESSIBILITY("ACCESSIBILITY"), 
+	PERFORMANCE("PERFORMANCE"), 
+	SEO("SEO"), 
+	BEST_PRACTICES("BEST_PRACTICES");
 	
 	private String shortName;
 
@@ -22,7 +26,7 @@ public enum BugType {
             throw new IllegalArgumentException();
         }
         for(BugType v : values()) {
-            if(value.equals(v.getShortName())) {
+            if(value.equalsIgnoreCase(v.getShortName())) {
                 return v;
             }
         }

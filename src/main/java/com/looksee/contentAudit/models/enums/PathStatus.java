@@ -7,7 +7,9 @@ import com.fasterxml.jackson.annotation.JsonCreator;
  * expanded - path has already been expanded and is ready for exploration
  */
 public enum PathStatus {
-	READY("ready"), EXPANDED("expanded"), EXAMINED("examined");
+	READY("ready"), 
+	EXPANDED("expanded"), 
+	EXAMINED("examined");
 	
 	private String shortName;
 
@@ -26,7 +28,7 @@ public enum PathStatus {
             throw new IllegalArgumentException();
         }
         for(PathStatus v : values()) {
-            if(value.equals(v.getShortName())) {
+            if(value.equalsIgnoreCase(v.getShortName())) {
                 return v;
             }
         }

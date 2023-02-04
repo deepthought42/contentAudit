@@ -2,14 +2,19 @@ package com.looksee.contentAudit.models.enums;
 
 import com.fasterxml.jackson.annotation.JsonCreator;
 
-public enum FormStatus {
-	DISCOVERED("discovered"), 
-	ACTION_REQUIRED("action_required"), 
-	CLASSIFIED("classified");
+/**
+ * ready - ready for expansion
+ * expanded - path has already been expanded and is ready for exploration
+ */
+public enum JourneyStatus {
+	READY("READY"), 
+	EXPANDED("EXPANDED"),
+	DISCARDED("DISCARDED"),
+	EXAMINED("EXAMINED");
 	
 	private String shortName;
 
-	FormStatus(String shortName) {
+	JourneyStatus (String shortName) {
         this.shortName = shortName;
     }
 
@@ -19,11 +24,11 @@ public enum FormStatus {
     }
 
     @JsonCreator
-    public static FormStatus create(String value) {
+    public static JourneyStatus create (String value) {
         if(value == null) {
             throw new IllegalArgumentException();
         }
-        for(FormStatus v : values()) {
+        for(JourneyStatus v : values()) {
             if(value.equalsIgnoreCase(v.getShortName())) {
                 return v;
             }

@@ -52,7 +52,7 @@ public enum ToneOfVoice {
             throw new IllegalArgumentException();
         }
         for(ToneOfVoice v : values()) {
-            if(value.equals(v.getShortName())) {
+            if(value.equalsIgnoreCase(v.getShortName())) {
                 return v;
             }
         }

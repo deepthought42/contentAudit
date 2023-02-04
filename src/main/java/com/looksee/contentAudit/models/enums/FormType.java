@@ -3,8 +3,15 @@ package com.looksee.contentAudit.models.enums;
 import com.fasterxml.jackson.annotation.JsonCreator;
 
 public enum FormType {
-	LOGIN("LOGIN"), REGISTRATION("REGISTRATION"), CONTACT_COMPANY("CONTACT_COMPANY"), SUBSCRIBE("SUBSCRIBE"), 
-	LEAD("LEAD"), SEARCH("SEARCH"), PASSWORD_RESET("PASSWORD_RESET"), PAYMENT("PAYMENT"), UNKNOWN("UNKNOWN");
+	LOGIN("LOGIN"), 
+	REGISTRATION("REGISTRATION"), 
+	CONTACT_COMPANY("CONTACT_COMPANY"), 
+	SUBSCRIBE("SUBSCRIBE"), 
+	LEAD("LEAD"), 
+	SEARCH("SEARCH"), 
+	PASSWORD_RESET("PASSWORD_RESET"), 
+	PAYMENT("PAYMENT"), 
+	UNKNOWN("UNKNOWN");
 	
 	private String shortName;
 
@@ -23,7 +30,7 @@ public enum FormType {
             throw new IllegalArgumentException();
         }
         for(FormType v : values()) {
-            if(value.equals(v.getShortName())) {
+            if(value.equalsIgnoreCase(v.getShortName())) {
                 return v;
             }
         }

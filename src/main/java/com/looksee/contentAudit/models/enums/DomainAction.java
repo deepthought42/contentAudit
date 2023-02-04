@@ -3,7 +3,8 @@ package com.looksee.contentAudit.models.enums;
 import com.fasterxml.jackson.annotation.JsonCreator;
 
 public enum DomainAction {
-	CREATE("create"), DELETE("delete");
+	CREATE("create"), 
+	DELETE("delete");
 	
 	private String shortName;
 
@@ -22,7 +23,7 @@ public enum DomainAction {
             throw new IllegalArgumentException();
         }
         for(DomainAction v : values()) {
-            if(value.equals(v.getShortName())) {
+            if(value.equalsIgnoreCase(v.getShortName())) {
                 return v;
             }
         }

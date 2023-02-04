@@ -6,7 +6,10 @@ import com.fasterxml.jackson.annotation.JsonCreator;
  * Enum values for various Captcha results on landable page states
  */
 public enum FormFactor {
-	UNKNOWN_FORM_FACTOR("UNKNOWN_FORM_FACTOR"), DESKTOP("desktop"), MOBILE("mobile"), NONE("none");
+	UNKNOWN_FORM_FACTOR("UNKNOWN_FORM_FACTOR"), 
+	DESKTOP("desktop"), 
+	MOBILE("mobile"), 
+	NONE("none");
 	
 	private String shortName;
 
@@ -25,7 +28,7 @@ public enum FormFactor {
             throw new IllegalArgumentException();
         }
         for(FormFactor v : values()) {
-            if(value.equals(v.getShortName())) {
+            if(value.equalsIgnoreCase(v.getShortName())) {
                 return v;
             }
         }

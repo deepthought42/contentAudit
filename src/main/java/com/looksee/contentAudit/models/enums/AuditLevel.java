@@ -28,7 +28,7 @@ public enum AuditLevel {
         }
         
         for(AuditLevel v : values()) {
-            if(value.equals(v.getShortName())) {
+            if(value.equalsIgnoreCase(v.getShortName())) {
                 return v;
             }
         }

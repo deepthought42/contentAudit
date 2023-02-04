@@ -30,7 +30,7 @@ public enum CaptchaResult {
             return CAPTCHA_UNSET;
         }
         for(CaptchaResult v : values()) {
-            if(value.equals(v.getShortName())) {
+            if(value.equalsIgnoreCase(v.getShortName())) {
                 return v;
             }
         }

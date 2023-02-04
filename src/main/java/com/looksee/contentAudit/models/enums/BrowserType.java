@@ -3,7 +3,10 @@ package com.looksee.contentAudit.models.enums;
 import com.fasterxml.jackson.annotation.JsonCreator;
 
 public enum BrowserType {
-	CHROME("chrome"), FIREFOX("firefox"), SAFARI("safari"), IE("ie");
+	CHROME("chrome"), 
+	FIREFOX("firefox"), 
+	SAFARI("safari"), 
+	IE("ie");
 	
 	private String shortName;
 
@@ -22,7 +25,7 @@ public enum BrowserType {
             throw new IllegalArgumentException();
         }
         for(BrowserType v : values()) {
-            if(value.equals(v.getShortName())) {
+            if(value.equalsIgnoreCase(v.getShortName())) {
                 return v;
             }
         }

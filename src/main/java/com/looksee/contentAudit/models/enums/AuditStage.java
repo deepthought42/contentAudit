@@ -28,7 +28,7 @@ public enum AuditStage {
         }
         
         for(AuditStage v : values()) {
-            if(value.equals(v.getShortName())) {
+            if(value.equalsIgnoreCase(v.getShortName())) {
                 return v;
             }
         }

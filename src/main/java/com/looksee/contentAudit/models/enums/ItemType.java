@@ -6,7 +6,11 @@ import com.fasterxml.jackson.annotation.JsonCreator;
  * Defines all types of {@link ItemType} that exist in the system
  */
 public enum ItemType {
-	TEXT("text"), BYTES("bytes"), NUMERIC("numeric"), MILLISECONDS("ms"), URL("url") ;
+	TEXT("text"), 
+	BYTES("bytes"), 
+	NUMERIC("numeric"), 
+	MILLISECONDS("ms"), 
+	URL("url") ;
 	
 	private String shortName;
 
@@ -25,7 +29,7 @@ public enum ItemType {
             throw new IllegalArgumentException();
         }
         for(ItemType v : values()) {
-            if(value.equals(v.getShortName())) {
+            if(value.equalsIgnoreCase(v.getShortName())) {
                 return v;
             }
         }

@@ -22,7 +22,7 @@ public enum AlertChoice {
             throw new IllegalArgumentException();
         }
         for(AlertChoice v : values()) {
-            if(value.equals(v.getShortName())) {
+            if(value.equalsIgnoreCase(v.getShortName())) {
                 return v;
             }
         }

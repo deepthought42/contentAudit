@@ -3,7 +3,10 @@ package com.looksee.contentAudit.models.enums;
 import com.fasterxml.jackson.annotation.JsonCreator;
 
 public enum TestStatus {
-	PASSING("PASSING"), FAILING("FAILING"), UNVERIFIED("UNVERIFIED"), RUNNING("RUNNING");
+	PASSING("PASSING"), 
+	FAILING("FAILING"), 
+	UNVERIFIED("UNVERIFIED"), 
+	RUNNING("RUNNING");
 	
 	private String shortName;
 
@@ -22,7 +25,7 @@ public enum TestStatus {
             throw new IllegalArgumentException();
         }
         for(TestStatus v : values()) {
-            if(value.equals(v.getShortName())) {
+            if(value.equalsIgnoreCase(v.getShortName())) {
                 return v;
             }
         }

@@ -6,7 +6,9 @@ import com.fasterxml.jackson.annotation.JsonCreator;
  * 
  */
 public enum AnimationType {
-	CAROUSEL("CAROUSEL"), LOADING("LOADING"), CONTINUOUS("CONTINUOUS");
+	CAROUSEL("CAROUSEL"), 
+	LOADING("LOADING"), 
+	CONTINUOUS("CONTINUOUS");
 	
 	private String shortName;
 
@@ -25,7 +27,7 @@ public enum AnimationType {
             throw new IllegalArgumentException();
         }
         for(AnimationType v : values()) {
-            if(value.equals(v.getShortName())) {
+            if(value.equalsIgnoreCase(v.getShortName())) {
                 return v;
             }
         }

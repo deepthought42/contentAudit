@@ -22,7 +22,7 @@ public enum BrowserEnvironment {
             throw new IllegalArgumentException();
         }
         for(BrowserEnvironment v : values()) {
-            if(value.equals(v.getShortName())) {
+            if(value.equalsIgnoreCase(v.getShortName())) {
                 return v;
             }
         }
