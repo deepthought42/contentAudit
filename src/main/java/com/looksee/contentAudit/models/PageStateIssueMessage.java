@@ -2,6 +2,7 @@ package com.looksee.contentAudit.models;
 
 import java.util.Set;
 
+import org.springframework.data.neo4j.core.schema.Node;
 import org.springframework.data.neo4j.core.schema.Relationship;
 
 import com.looksee.contentAudit.models.enums.AuditCategory;
@@ -11,6 +12,7 @@ import com.looksee.contentAudit.models.enums.Priority;
 /**
  * A observation of potential error for a given {@link Element element} 
  */
+@Node
 public class PageStateIssueMessage extends UXIssueMessage {
 
 	@Relationship(type = "FOR")

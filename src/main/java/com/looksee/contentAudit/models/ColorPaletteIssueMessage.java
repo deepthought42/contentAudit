@@ -5,6 +5,8 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 
+import org.springframework.data.neo4j.core.schema.Node;
+
 import com.looksee.contentAudit.models.enums.AuditCategory;
 import com.looksee.contentAudit.models.enums.ColorScheme;
 import com.looksee.contentAudit.models.enums.ObservationType;
@@ -13,6 +15,7 @@ import com.looksee.contentAudit.models.enums.Priority;
 /**
  * A observation of potential error for a given color palette 
  */
+@Node
 public class ColorPaletteIssueMessage extends UXIssueMessage{
 	
 	private List<String> palette_colors = new ArrayList<>();

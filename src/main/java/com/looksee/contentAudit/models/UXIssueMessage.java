@@ -5,11 +5,13 @@ import java.util.UUID;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.data.neo4j.core.schema.Node;
 
 import com.looksee.contentAudit.models.enums.AuditCategory;
 import com.looksee.contentAudit.models.enums.ObservationType;
 import com.looksee.contentAudit.models.enums.Priority;
 
+@Node
 public class UXIssueMessage extends LookseeObject {
 	private static Logger log = LoggerFactory.getLogger(UXIssueMessage.class);
 

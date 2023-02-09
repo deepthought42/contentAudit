@@ -4,6 +4,7 @@ import java.util.Set;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.data.neo4j.core.schema.Node;
 
 import com.looksee.contentAudit.models.enums.AuditCategory;
 import com.looksee.contentAudit.models.enums.ObservationType;
@@ -13,6 +14,7 @@ import com.looksee.contentAudit.models.enums.Priority;
 /**
  * A observation of potential error for a given color palette 
  */
+@Node
 public class ColorContrastIssueMessage extends ElementStateIssueMessage{
 	private static Logger log = LoggerFactory.getLogger(ColorContrastIssueMessage.class);
 
