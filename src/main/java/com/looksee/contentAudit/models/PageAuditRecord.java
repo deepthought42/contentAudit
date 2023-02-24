@@ -1,20 +1,26 @@
 package com.looksee.contentAudit.models;
 
 import java.util.HashSet;
+import java.util.List;
 import java.util.Set;
 
+import org.springframework.data.neo4j.core.schema.Node;
 import org.springframework.data.neo4j.core.schema.Relationship;
 
 import com.looksee.contentAudit.models.enums.AuditLevel;
+import com.looksee.contentAudit.models.enums.AuditName;
 import com.looksee.contentAudit.models.enums.ExecutionStatus;
-
 
 /**
  * Record detailing an set of {@link Audit audits}.
  */
+@Node
 public class PageAuditRecord extends AuditRecord {
 	@Relationship(type = "HAS")
 	private Set<Audit> audits;
+	
+	@Relationship(type = "FOR")
+	private PageState page_state;
 	
 	private long elements_found;
 	private long elements_reviewed;
@@ -29,21 +35,27 @@ public class PageAuditRecord extends AuditRecord {
 	 * @param audits TODO
 	 * @param page_state TODO
 	 * @param is_part_of_domain_audit TODO
+	 * @param audit_list TODO
 	 * @param audit_stats {@link AuditStats} object with statics for audit progress
 	 * @pre audits != null
 	 * @pre page_state != null
 	 * @pre status != null;
 	 */
 	public PageAuditRecord(
-			ExecutionStatus status,
-			boolean is_part_of_domain_audit
+			ExecutionStatus status, 
+			Set<Audit> audits, 
+			PageState page_state, 
+			boolean is_part_of_domain_audit, 
+			List<AuditName> audit_list
 	) {
 		assert audits != null;
 		assert status != null;
 		
 		setAudits(audits);
+		setPageState(page_state);
 		setStatus(status);
 		setLevel( AuditLevel.PAGE);
+		setAuditLabels(audit_list);
 		setKey(generateKey());
 	}
 
@@ -65,6 +77,14 @@ public class PageAuditRecord extends AuditRecord {
 	
 	public void addAudits(Set<Audit> audits) {
 		this.audits.addAll( audits );
+	}
+
+	public PageState getPageState() {
+		return page_state;
+	}
+
+	public void setPageState(PageState page_state) {
+		this.page_state = page_state;
 	}
 
 	public long getElementsFound() {

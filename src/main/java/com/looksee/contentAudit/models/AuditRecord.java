@@ -8,8 +8,8 @@ import java.util.UUID;
 import org.springframework.data.neo4j.core.schema.Node;
 
 import com.looksee.contentAudit.models.enums.AuditLevel;
+import com.looksee.contentAudit.models.enums.AuditName;
 import com.looksee.contentAudit.models.enums.ExecutionStatus;
-
 
 /**
  * Record detailing an set of {@link Audit audits}.
@@ -37,6 +37,9 @@ public class AuditRecord extends LookseeObject {
 
 	private String targetUserAge;
 	private String targetUserEducation;
+	
+	private List<AuditName> auditLabels;
+
 
 	//DESIGN SYSTEM VALUES
 	private List<String> colors;
@@ -221,6 +224,14 @@ public class AuditRecord extends LookseeObject {
 
 	public void setStatusMessage(String status_message) {
 		this.statusMessage = status_message;
+	}
+
+	public List<AuditName> getAuditLabels() {
+		return auditLabels;
+	}
+
+	public void setAuditLabels(List<AuditName> auditLabels) {
+		this.auditLabels = auditLabels;
 	}
 	
 	@Override
