@@ -1,5 +1,7 @@
 package com.looksee.contentAudit.services;
 
+import java.util.Optional;
+
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -16,6 +18,14 @@ public class JourneyService {
 
 	@Autowired
 	private JourneyRepository journey_repo;
+	
+	public Optional<Journey> findById(long id) {
+		return journey_repo.findById(id);
+	}
+	
+	public Journey findByKey(String key) {
+		return journey_repo.findByKey(key);
+	}
 	
 	public Journey save(Journey journey) {
 		Journey journey_record = journey_repo.findByKey(journey.getKey());
@@ -35,5 +45,8 @@ public class JourneyService {
 		journey_record.setSteps(journey.getSteps());
 		return journey_record;	
 	}
-	
+
+	public Journey findByCandidateKey(String candidateKey) {
+		return journey_repo.findByCandidateKey(candidateKey);
+	}
 }
