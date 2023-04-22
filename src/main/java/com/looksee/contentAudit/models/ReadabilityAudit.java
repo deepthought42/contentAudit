@@ -130,7 +130,7 @@ public class ReadabilityAudit implements IExecutablePageStateAudit {
 					ReadingComplexityIssueMessage issue_message = new ReadingComplexityIssueMessage(Priority.LOW, 
 																								  description,
 																								  recommendation,
-																								  null,
+																								  element,
 																								  AuditCategory.CONTENT,
 																								  labels,
 																								  ada_compliance,
@@ -140,7 +140,7 @@ public class ReadabilityAudit implements IExecutablePageStateAudit {
 																								  ease_of_reading_score);
 					
 					issue_message = (ReadingComplexityIssueMessage) issue_message_service.save(issue_message);
-					issue_message_service.addElement(issue_message.getId(), element.getId());
+					//issue_message_service.addElement(issue_message.getId(), element.getId());
 					issue_messages.add(issue_message);
 				}
 				else {
@@ -158,7 +158,7 @@ public class ReadabilityAudit implements IExecutablePageStateAudit {
 					ReadingComplexityIssueMessage issue_message = new ReadingComplexityIssueMessage(Priority.NONE, 
 																								  description,
 																								  recommendation,
-																								  null,
+																								  element,
 																								  AuditCategory.CONTENT,
 																								  labels,
 																								  ada_compliance,
@@ -168,7 +168,7 @@ public class ReadabilityAudit implements IExecutablePageStateAudit {
 																								  ease_of_reading_score);
 					
 					issue_message = (ReadingComplexityIssueMessage) issue_message_service.save(issue_message);
-					issue_message_service.addElement(issue_message.getId(), element.getId());
+					//issue_message_service.addElement(issue_message.getId(), element.getId());
 					issue_messages.add(issue_message);
 				}
 			} catch(Exception e) {
@@ -209,7 +209,7 @@ public class ReadabilityAudit implements IExecutablePageStateAudit {
 								 AuditSubcategory.WRITTEN_CONTENT,
 								 AuditName.READING_COMPLEXITY,
 								 points_earned,
-								 new HashSet<>(),
+								 issue_messages,
 								 AuditLevel.PAGE,
 								 max_points, 
 								 page_state.getUrl(),
@@ -217,9 +217,9 @@ public class ReadabilityAudit implements IExecutablePageStateAudit {
 								 description,
 								 false); 
 		
-		audit_service.save(audit);
-		audit_service.addAllIssues(audit.getId(), issue_messages);
-		return audit;
+		return audit_service.save(audit);
+		//audit_service.addAllIssues(audit.getId(), issue_messages);
+		//return audit;
 	}
 
 

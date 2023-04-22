@@ -64,7 +64,7 @@ public class PageState extends LookseeObject {
 	private Set<String> keywords;
 	private int httpStatus;
 	
-	@Relationship(type = "HAS", direction = Direction.INCOMING)
+	@Relationship(type = "HAS", direction = Direction.OUTGOING)
 	private List<ElementState> elements;
 
 

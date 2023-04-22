@@ -68,9 +68,8 @@ public class ImageAltTextAudit implements IExecutablePageStateAudit {
 		labels.add("wcag");
 		
 		String tag_name = "img";
-		List<ElementState> elements = page_state_service.getElementStates(page_state.getId());
 		List<ElementState> image_elements = new ArrayList<>();
-		for(ElementState element : elements) {
+		for(ElementState element : page_state.getElements()) {
 			if(element.getName().equalsIgnoreCase(tag_name)) {
 				image_elements.add(element);
 			}
@@ -99,7 +98,7 @@ public class ImageAltTextAudit implements IExecutablePageStateAudit {
 																	Priority.HIGH, 
 																	description, 
 																	"Images without alternative text defined as a non empty string value", 
-																	null,
+																	image_element,
 																	AuditCategory.CONTENT,
 																	labels,
 																	ada_compliance,
@@ -108,7 +107,7 @@ public class ImageAltTextAudit implements IExecutablePageStateAudit {
 																	1);
 					
 					issue_message = (ElementStateIssueMessage) issue_message_service.save(issue_message);
-					issue_message_service.addElement(issue_message.getId(), image_element.getId());
+					//issue_message_service.addElement(issue_message.getId(), image_element.getId());
 					issue_messages.add(issue_message);
 				}
 				else {
@@ -119,7 +118,7 @@ public class ImageAltTextAudit implements IExecutablePageStateAudit {
 																	Priority.NONE, 
 																	description, 
 																	"Images without alternative text defined as a non empty string value", 
-																	null,
+																	image_element,
 																	AuditCategory.CONTENT,
 																	labels,
 																	ada_compliance,
@@ -128,7 +127,7 @@ public class ImageAltTextAudit implements IExecutablePageStateAudit {
 																	1);
 
 					issue_message = (ElementStateIssueMessage) issue_message_service.save(issue_message);
-					issue_message_service.addElement(issue_message.getId(), image_element.getId());
+					//issue_message_service.addElement(issue_message.getId(), image_element.getId());
 					issue_messages.add(issue_message);
 				}
 			}
@@ -140,7 +139,7 @@ public class ImageAltTextAudit implements IExecutablePageStateAudit {
 																Priority.HIGH, 
 																description, 
 																"Images without alternative text attribute", 
-																null,
+																image_element,
 																AuditCategory.CONTENT, 
 																labels,
 																ada_compliance,
@@ -149,7 +148,7 @@ public class ImageAltTextAudit implements IExecutablePageStateAudit {
 																1);
 				
 				issue_message = (ElementStateIssueMessage) issue_message_service.save(issue_message);
-				issue_message_service.addElement(issue_message.getId(), image_element.getId());
+				//issue_message_service.addElement(issue_message.getId(), image_element.getId());
 				issue_messages.add(issue_message);
 			}
 		}
@@ -183,16 +182,16 @@ public class ImageAltTextAudit implements IExecutablePageStateAudit {
 								 AuditSubcategory.IMAGERY,
 								 AuditName.ALT_TEXT,
 								 points_earned,
-								 new HashSet<>(),
+								 issue_messages,
 								 AuditLevel.PAGE,
 								 max_points,
 								 page_state.getUrl(), 
 								 why_it_matters, 
 								 description,
 								 true);
-		audit_service.save(audit);
-		audit_service.addAllIssues(audit.getId(), issue_messages);
+		return audit_service.save(audit);
+		//audit_service.addAllIssues(audit.getId(), issue_messages);
 		
-		return audit;
+		//return audit;
 	}
 }

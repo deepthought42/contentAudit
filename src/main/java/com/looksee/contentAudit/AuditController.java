@@ -18,6 +18,7 @@ package com.looksee.contentAudit;
 // [START cloudrun_pubsub_handler]
 // [START run_pubsub_handler]
 import java.util.Base64;
+import java.util.Set;
 import java.util.concurrent.ExecutionException;
 
 import org.slf4j.Logger;
@@ -42,6 +43,7 @@ import com.looksee.contentAudit.models.ImagePolicyAudit;
 import com.looksee.contentAudit.models.PageState;
 import com.looksee.contentAudit.models.ParagraphingAudit;
 import com.looksee.contentAudit.models.ReadabilityAudit;
+import com.looksee.contentAudit.models.enums.AuditName;
 import com.looksee.contentAudit.models.message.PageAuditMessage;
 import com.looksee.contentAudit.services.AuditRecordService;
 import com.looksee.contentAudit.services.PageStateService;
@@ -83,8 +85,6 @@ public class AuditController {
 	    ObjectMapper input_mapper = new ObjectMapper();
 	    PageAuditMessage audit_record_msg = input_mapper.readValue(target, PageAuditMessage.class);
 	    
-	   // JsonMapper mapper = JsonMapper.builder().addModule(new JavaTimeModule()).build();
-
 	    try {
 	    	//page_audit_record_service.findById(audit_record_msg.getPageAuditId()).get();
 	    	log.warn("page audit id = "+audit_record_msg.getPageAuditId());
@@ -93,7 +93,8 @@ public class AuditController {
 			
 			page.setElements(page_state_service.getElementStates(page.getId()));
 			log.warn("evaluating "+page.getElements().size()+" element state for content audit with page ID :: "+page.getId());
-			
+	    	Set<Audit> audits = audit_record_service.getAllAudits(audit_record.getId());
+
 			/*
 			AuditProgressUpdate audit_update = new AuditProgressUpdate(audit_record_msg.getAccountId(),
 																		audit_record_msg.getDomainAuditRecordId(), 
@@ -107,10 +108,11 @@ public class AuditController {
 			String audit_record_json = mapper.writeValueAsString(audit_update);
 			audit_record_topic.publish(audit_record_json);
 			  */
-			try {
-				Audit alt_text_audit = image_alt_text_auditor.execute(page, audit_record, null);
-				audit_record_service.addAudit(audit_record_msg.getPageAuditId(), alt_text_audit.getId());
-
+//			try {
+	    		if(!auditAlreadyExists(audits, AuditName.ALT_TEXT)) {    			
+					Audit alt_text_audit = image_alt_text_auditor.execute(page, audit_record, null);
+					audit_record_service.addAudit(audit_record_msg.getPageAuditId(), alt_text_audit.getId());
+	    		}
 				/*
 				AuditProgressUpdate audit_update2 = new AuditProgressUpdate(audit_record_msg.getAccountId(),
 																			audit_record_msg.getDomainAuditRecordId(), 
@@ -127,8 +129,8 @@ public class AuditController {
 					
 				audit_record_topic.publish(audit_record_json);	
 				*/
+	    		/*
 			} catch (Exception e) {
-				/*
 				AuditError audit_err = new AuditError(audit_record_msg.getAccountId(), 
 													  audit_record_msg.getDomainAuditRecordId(),
 													  "An error occurred while reviewing images for uniqueness", 
@@ -138,14 +140,15 @@ public class AuditController {
 				
 				audit_record_json = mapper.writeValueAsString(audit_err);
 				error_topic.publish(audit_record_json);
-*/
 				e.printStackTrace();
 			}
+				 */
 
-			try {
-				Audit readability_audit = readability_auditor.execute(page, audit_record, null);
-				audit_record_service.addAudit(audit_record_msg.getPageAuditId(), readability_audit.getId());
-
+			//try {
+	    		if(!auditAlreadyExists(audits, AuditName.READING_COMPLEXITY)) {    			
+					Audit readability_audit = readability_auditor.execute(page, audit_record, null);
+					audit_record_service.addAudit(audit_record_msg.getPageAuditId(), readability_audit.getId());
+	    		}
 				/*
 				AuditProgressUpdate audit_update3 = new AuditProgressUpdate(audit_record_msg.getAccountId(),
 																			audit_record_msg.getDomainAuditRecordId(), 
@@ -162,8 +165,8 @@ public class AuditController {
 					
 				 audit_record_topic.publish(audit_record_json);
 				 */
+	    		/*
 			} catch (Exception e) {
-				/*
 				AuditError audit_err = new AuditError(audit_record_msg.getAccountId(), 
 													  audit_record_msg.getDomainAuditRecordId(),
 													  "An error occurred while reviewing images for uniqueness", 
@@ -173,14 +176,15 @@ public class AuditController {
 				
 				audit_record_json = mapper.writeValueAsString(audit_err);
 				error_topic.publish(audit_record_json);
-				*/
 				e.printStackTrace();
 			}
+				 */
 
-			try {
-				Audit paragraph_audit = paragraph_auditor.execute(page, audit_record, null);
-				audit_record_service.addAudit(audit_record_msg.getPageAuditId(), paragraph_audit.getId());
-
+//			try {
+	    		if(!auditAlreadyExists(audits, AuditName.PARAGRAPHING)) {    			
+					Audit paragraph_audit = paragraph_auditor.execute(page, audit_record, null);
+					audit_record_service.addAudit(audit_record_msg.getPageAuditId(), paragraph_audit.getId());
+	    		}
 				
 				/*
 				AuditProgressUpdate audit_update4 = new AuditProgressUpdate(audit_record_msg.getAccountId(),
@@ -196,8 +200,8 @@ public class AuditController {
 				log.warn("paragraph audit message :: " +audit_record_json);
 				audit_record_topic.publish(audit_record_json);
 				*/
+	    		/*
 			} catch (Exception e) {
-				/*
 				AuditError audit_err = new AuditError(audit_record_msg.getAccountId(), 
 													  audit_record_msg.getDomainAuditRecordId(),
 													  "An error occurred while reviewing images for uniqueness", 
@@ -206,14 +210,16 @@ public class AuditController {
 													  audit_record_msg.getDomainId());
 				audit_record_json = mapper.writeValueAsString(audit_err);
 				error_topic.publish(audit_record_json);
-				*/
 				e.printStackTrace();
 			}
+				 */
 
-			try {
-				Audit image_copyright_audit = image_audit.execute(page, audit_record, null);
-				audit_record_service.addAudit(audit_record_msg.getPageAuditId(), image_copyright_audit.getId());
-
+//			try {
+	    		if(!auditAlreadyExists(audits, AuditName.IMAGE_COPYRIGHT)) {    			
+					Audit image_copyright_audit = image_audit.execute(page, audit_record, null);
+					audit_record_service.addAudit(audit_record_msg.getPageAuditId(), image_copyright_audit.getId());
+	    		}
+	    		
 				/*
 				AuditProgressUpdate audit_update5 = new AuditProgressUpdate(audit_record_msg.getAccountId(),
 																			audit_record_msg.getDomainAuditRecordId(),
@@ -229,8 +235,8 @@ public class AuditController {
 				log.warn("image copyright audit :: "+audit_record_json);
 				audit_record_topic.publish(audit_record_json);
 				 */
+	    		/*
 			} catch (Exception e) {
-				/*
 				AuditError audit_err = new AuditError(audit_record_msg.getAccountId(), 
 													  audit_record_msg.getDomainAuditRecordId(),
 													  "An error occurred while reviewing images for uniqueness", 
@@ -240,14 +246,15 @@ public class AuditController {
 				
 				audit_record_json = mapper.writeValueAsString(audit_err);
 				error_topic.publish(audit_record_json);
-				*/
 				e.printStackTrace();
 			}
+				 */
 			
-			try {
-				Audit image_policy_result = image_policy_audit.execute(page, audit_record, null);
-				audit_record_service.addAudit(audit_record_msg.getPageAuditId(), image_policy_result.getId());
-
+//			try {
+	    		if(!auditAlreadyExists(audits, AuditName.IMAGE_POLICY)) {    			
+					Audit image_policy_result = image_policy_audit.execute(page, audit_record, null);
+					audit_record_service.addAudit(audit_record_msg.getPageAuditId(), image_policy_result.getId());
+	    		}
 				/*
 				AuditProgressUpdate audit_update6 = new AuditProgressUpdate(audit_record_msg.getAccountId(),
 																			audit_record_msg.getDomainAuditRecordId(),
@@ -263,8 +270,8 @@ public class AuditController {
 				log.warn("iamge policy audit :: " + audit_record_json);
 				audit_record_topic.publish(audit_record_json);
 				 */
+	    		/*
 			} catch (Exception e) {
-				/*
 				AuditError audit_err = new AuditError(audit_record_msg.getAccountId(), 
 													  audit_record_msg.getDomainAuditRecordId(),
 													  "An error occurred while reviewing images for uniqueness", 
@@ -274,9 +281,9 @@ public class AuditController {
 				
 				audit_record_json = mapper.writeValueAsString(audit_err);
 				error_topic.publish(audit_record_json);
-				*/
 				e.printStackTrace();
 			}
+				 */
 			
 		} catch (Exception e) {
 			log.error("exception caught during content audit");
@@ -286,6 +293,7 @@ public class AuditController {
 			log.error("THERE WAS AN ISSUE DURING CONTENT AUDIT");
 			log.error("-------------------------------------------------------------");
 			log.error("-------------------------------------------------------------");
+		    return new ResponseEntity<String>("Error performing content audit", HttpStatus.INTERNAL_SERVER_ERROR);
 		}
 	    
 	    /*
@@ -303,6 +311,30 @@ public class AuditController {
 	     */
 	    
 	    return new ResponseEntity<String>("Successfully completed content audit", HttpStatus.OK);
+	}
+	
+	/**
+	 * Checks if the any of the provided {@link Audit audits} have a name that matches 
+	 * 		the provided {@linkplain AuditName}
+	 * 
+	 * @param audits
+	 * @param audit_name
+	 * 
+	 * @return
+	 * 
+	 * @pre audits != null
+	 * @pre audit_name != null
+	 */
+	private boolean auditAlreadyExists(Set<Audit> audits, AuditName audit_name) {
+		assert audits != null;
+		assert audit_name != null;
+		
+		for(Audit audit : audits) {
+			if(audit_name.equals(audit.getName())) {
+				return true;
+			}
+		}
+		return false;
 	}
 }
 // [END run_pubsub_handler]

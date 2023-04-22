@@ -63,7 +63,7 @@ public class ImageAudit implements IExecutablePageStateAudit {
 								 AuditSubcategory.IMAGERY, 
 								 AuditName.IMAGE_COPYRIGHT, 
 								 copyright_score.getPointsAchieved(), 
-								 new HashSet<>(), 
+								 copyright_score.getIssueMessages(), 
 								 AuditLevel.PAGE, 
 								 copyright_score.getMaxPossiblePoints(), 
 								 page_state.getUrl(),
@@ -71,9 +71,9 @@ public class ImageAudit implements IExecutablePageStateAudit {
 								 description,
 								 false); 
 						 
-		audit_service.save(audit);
-		audit_service.addAllIssues(audit.getId(), copyright_score.getIssueMessages());
-		return audit;
+		return audit_service.save(audit);
+		//audit_service.addAllIssues(audit.getId(), copyright_score.getIssueMessages());
+		//return audit;
 	}
 
 
@@ -108,7 +108,7 @@ public class ImageAudit implements IExecutablePageStateAudit {
 																Priority.MEDIUM, 
 																description, 
 																recommendation, 
-																null,
+																element,
 																AuditCategory.CONTENT,
 																labels,
 																ada_compliance,
@@ -118,7 +118,7 @@ public class ImageAudit implements IExecutablePageStateAudit {
 																true);
 				
 				issue_message = (StockImageIssueMessage) issue_message_service.save(issue_message);
-				issue_message_service.addElement(issue_message.getId(), element.getId());
+				//issue_message_service.addElement(issue_message.getId(), element.getId());
 				issue_messages.add(issue_message);
 				
 				points_earned += 0;
@@ -135,7 +135,7 @@ public class ImageAudit implements IExecutablePageStateAudit {
 																Priority.NONE, 
 																description, 
 																recommendation, 
-																null,
+																element,
 																AuditCategory.CONTENT,
 																labels,
 																ada_compliance,
@@ -145,7 +145,7 @@ public class ImageAudit implements IExecutablePageStateAudit {
 																false);
 
 				issue_message = (StockImageIssueMessage) issue_message_service.save(issue_message);
-				issue_message_service.addElement(issue_message.getId(), element.getId());
+				//issue_message_service.addElement(issue_message.getId(), element.getId());
 				issue_messages.add(issue_message);
 			}
 		}

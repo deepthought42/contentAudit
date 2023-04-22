@@ -33,6 +33,7 @@ resilience4j.retry:
                 - org.neo4j.driver.exceptions.SessionExpiredException
                 - org.neo4j.driver.exceptions.DiscoveryException
                 - org.neo4j.driver.exceptions.TransientException
+                - org.neo4j.driver.exceptions.ServiceUnavailableException
                 - org.neo4j.ogm.exception.TransactionException
                 - org.neo4j.ogm.exception.CypherException
                 - java.net.SocketException

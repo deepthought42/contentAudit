@@ -19,7 +19,6 @@ import com.looksee.contentAudit.models.enums.AuditName;
 import com.looksee.contentAudit.models.enums.AuditSubcategory;
 import com.looksee.contentAudit.models.enums.Priority;
 import com.looksee.contentAudit.services.AuditService;
-import com.looksee.contentAudit.services.PageStateService;
 import com.looksee.contentAudit.services.UXIssueMessageService;
 import com.looksee.utils.BrowserUtils;
 
@@ -33,9 +32,6 @@ public class ParagraphingAudit implements IExecutablePageStateAudit {
 	
 	@Autowired
 	private AuditService audit_service;
-	
-	@Autowired
-	private PageStateService page_state_service;
 	
 	@Autowired
 	private UXIssueMessageService issue_message_service;
@@ -61,9 +57,9 @@ public class ParagraphingAudit implements IExecutablePageStateAudit {
 		Set<UXIssueMessage> issue_messages = new HashSet<>();
 		
 		//get all elements that are text containers
-		List<ElementState> elements = page_state_service.getElementStates(page_state.getId());
+		//List<ElementState> elements = page_state_service.getElementStates(page_state.getId());
 		//filter elements that aren't text elements
-		List<ElementState> element_list = BrowserUtils.getTextElements(elements);
+		List<ElementState> element_list = BrowserUtils.getTextElements(page_state.getElements());
 		
 		for(ElementState element : element_list) {
 			String text_block = element.getOwnedText();
@@ -124,7 +120,7 @@ public class ParagraphingAudit implements IExecutablePageStateAudit {
 						 AuditSubcategory.WRITTEN_CONTENT, 
 						 AuditName.PARAGRAPHING, 
 						 points_earned, 
-						 new HashSet<>(), 
+						 issue_messages, 
 						 AuditLevel.PAGE, 
 						 max_points, 
 						 page_state.getUrl(),
@@ -132,9 +128,9 @@ public class ParagraphingAudit implements IExecutablePageStateAudit {
 						 description,
 						 false); 
 						 
-		audit_service.save(audit);
-		audit_service.addAllIssues(audit.getId(), issue_messages);
-		return audit;
+		return audit_service.save(audit);
+		//audit_service.addAllIssues(audit.getId(), issue_messages);
+		//return audit;
 	}
 
 
@@ -171,7 +167,7 @@ public class ParagraphingAudit implements IExecutablePageStateAudit {
 																Priority.MEDIUM, 
 																description, 
 																recommendation, 
-																null,
+																element,
 																AuditCategory.CONTENT,
 																labels,
 																ada_compliance,
@@ -181,10 +177,9 @@ public class ParagraphingAudit implements IExecutablePageStateAudit {
 																words.length);
 				
 				issue_message = (SentenceIssueMessage) issue_message_service.save(issue_message);
-				issue_message_service.addElement(issue_message.getId(), element.getId());
+				//issue_message_service.addElement(issue_message.getId(), element.getId());
 				issue_messages.add(issue_message);
 				
-				points_earned += 0;
 				max_points += 1;
 			}
 			else {
@@ -198,7 +193,7 @@ public class ParagraphingAudit implements IExecutablePageStateAudit {
 																Priority.NONE, 
 																description, 
 																recommendation, 
-																null,
+																element,
 																AuditCategory.CONTENT,
 																labels,
 																ada_compliance,
@@ -208,7 +203,7 @@ public class ParagraphingAudit implements IExecutablePageStateAudit {
 																words.length);
 				
 				issue_message = (SentenceIssueMessage) issue_message_service.save(issue_message);
-				issue_message_service.addElement(issue_message.getId(), element.getId());
+				//issue_message_service.addElement(issue_message.getId(), element.getId());
 				issue_messages.add(issue_message);
 			}
 		}
