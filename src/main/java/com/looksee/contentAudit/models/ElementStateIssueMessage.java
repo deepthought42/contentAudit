@@ -29,12 +29,11 @@ public class ElementStateIssueMessage extends UXIssueMessage {
 			Priority priority,
 			String description,
 			String recommendation, 
-			ElementState element, 
 			AuditCategory category, 
 			Set<String> labels, 
-			String wcag_compliance,
-			String title, 
-			int points_awarded,
+			String wcag_compliance, 
+			String title,
+			int points_awarded, 
 			int max_points
 	) {
 		super(	priority, 
@@ -48,8 +47,6 @@ public class ElementStateIssueMessage extends UXIssueMessage {
 				points_awarded,
 				max_points,
 				recommendation);
-		
-		setElement(element);
 	}
 
 	public ElementState getElement() {

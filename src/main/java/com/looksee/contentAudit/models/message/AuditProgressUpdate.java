@@ -17,15 +17,13 @@ public class AuditProgressUpdate extends Message {
 	
 	public AuditProgressUpdate(
 			long account_id,
-			long audit_record_id,
-			double progress,
-			String message, 
-			AuditCategory category,
-			AuditLevel level, 
-			long domain_id, 
-			long page_audit_id
+			long page_audit_id,
+			double progress, 
+			String message,
+			AuditCategory category, 
+			AuditLevel level
 	) {
-		super(account_id, audit_record_id, domain_id);
+		super(account_id);
 		setProgress(progress);
 		setMessage(message);
 		setCategory(category);

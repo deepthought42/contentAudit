@@ -13,14 +13,10 @@ import com.looksee.contentAudit.models.Audit;
 import com.looksee.contentAudit.models.ElementState;
 import com.looksee.contentAudit.models.UXIssueMessage;
 
-import io.github.resilience4j.retry.annotation.Retry;
-
-
 /**
  * Repository interface for Spring Data Neo4j to handle interactions with {@link Audit} objects
  */
 @Repository
-@Retry(name = "neoforj")
 public interface AuditRepository extends Neo4jRepository<Audit, Long> {
 	public Audit findByKey(@Param("key") String key);
 
@@ -124,5 +120,8 @@ public interface AuditRepository extends Neo4jRepository<Audit, Long> {
 
 	@Query("MATCH (par:PageAuditRecord)-[]->(audit:Audit{is_accessibility:true}) WHERE id(par)=$page_audit_id RETURN audit")
 	public Set<Audit> getAllAccessibilityAudits(@Param("page_audit_id") long page_audit_id);
+
+	@Query("MATCH (ar:AuditRecord)-[:HAS]->(a:Audit{key:$audit_key}) WHERE id(ar)=$audit_record_id RETURN a")
+	public Optional<Audit> getAuditForAuditRecord(@Param("audit_record_id") long audit_record_id, @Param("audit_key") String key);
 	
 }

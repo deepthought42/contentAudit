@@ -21,7 +21,6 @@ import com.looksee.contentAudit.models.enums.AuditName;
 import com.looksee.contentAudit.models.enums.AuditSubcategory;
 import com.looksee.contentAudit.models.enums.Priority;
 import com.looksee.contentAudit.services.AuditService;
-import com.looksee.contentAudit.services.PageStateService;
 import com.looksee.contentAudit.services.UXIssueMessageService;
 
 
@@ -33,9 +32,6 @@ import com.looksee.contentAudit.services.UXIssueMessageService;
 public class ImageAltTextAudit implements IExecutablePageStateAudit {
 	@SuppressWarnings("unused")
 	private static Logger log = LoggerFactory.getLogger(ImageAltTextAudit.class);
-
-	@Autowired
-	private PageStateService page_state_service;
 	
 	@Autowired
 	private AuditService audit_service;
@@ -98,7 +94,6 @@ public class ImageAltTextAudit implements IExecutablePageStateAudit {
 																	Priority.HIGH, 
 																	description, 
 																	"Images without alternative text defined as a non empty string value", 
-																	image_element,
 																	AuditCategory.CONTENT,
 																	labels,
 																	ada_compliance,
@@ -107,7 +102,7 @@ public class ImageAltTextAudit implements IExecutablePageStateAudit {
 																	1);
 					
 					issue_message = (ElementStateIssueMessage) issue_message_service.save(issue_message);
-					//issue_message_service.addElement(issue_message.getId(), image_element.getId());
+					issue_message_service.addElement(issue_message.getId(), image_element.getId());
 					issue_messages.add(issue_message);
 				}
 				else {
@@ -118,7 +113,6 @@ public class ImageAltTextAudit implements IExecutablePageStateAudit {
 																	Priority.NONE, 
 																	description, 
 																	"Images without alternative text defined as a non empty string value", 
-																	image_element,
 																	AuditCategory.CONTENT,
 																	labels,
 																	ada_compliance,
@@ -127,7 +121,7 @@ public class ImageAltTextAudit implements IExecutablePageStateAudit {
 																	1);
 
 					issue_message = (ElementStateIssueMessage) issue_message_service.save(issue_message);
-					//issue_message_service.addElement(issue_message.getId(), image_element.getId());
+					issue_message_service.addElement(issue_message.getId(), image_element.getId());
 					issue_messages.add(issue_message);
 				}
 			}
@@ -139,16 +133,15 @@ public class ImageAltTextAudit implements IExecutablePageStateAudit {
 																Priority.HIGH, 
 																description, 
 																"Images without alternative text attribute", 
-																image_element,
-																AuditCategory.CONTENT, 
-																labels,
+																AuditCategory.CONTENT,
+																labels, 
 																ada_compliance,
 																title,
 																0,
 																1);
 				
 				issue_message = (ElementStateIssueMessage) issue_message_service.save(issue_message);
-				//issue_message_service.addElement(issue_message.getId(), image_element.getId());
+				issue_message_service.addElement(issue_message.getId(), image_element.getId());
 				issue_messages.add(issue_message);
 			}
 		}
@@ -182,16 +175,14 @@ public class ImageAltTextAudit implements IExecutablePageStateAudit {
 								 AuditSubcategory.IMAGERY,
 								 AuditName.ALT_TEXT,
 								 points_earned,
-								 issue_messages,
 								 AuditLevel.PAGE,
 								 max_points,
-								 page_state.getUrl(), 
+								 page_state.getUrl(),
 								 why_it_matters, 
-								 description,
+								 description, 
 								 true);
-		return audit_service.save(audit);
-		//audit_service.addAllIssues(audit.getId(), issue_messages);
-		
-		//return audit;
+		audit = audit_service.save(audit);
+		audit_service.addAllIssues(audit.getId(), issue_messages);
+		return audit;
 	}
 }

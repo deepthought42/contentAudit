@@ -15,6 +15,7 @@ import org.apache.commons.collections4.IterableUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.retry.annotation.Retryable;
 import org.springframework.stereotype.Service;
 
 import com.looksee.contentAudit.models.enums.AuditName;
@@ -31,14 +32,12 @@ import com.looksee.contentAudit.models.SimpleElement;
 import com.looksee.contentAudit.models.SimplePage;
 import com.looksee.contentAudit.models.UXIssueMessage;
 
-import io.github.resilience4j.retry.annotation.Retry;
-
 /**
  * Contains business logic for interacting with and managing audits
  *
  */
 @Service
-@Retry(name = "neoforj")
+//@Retry(name = "neoforj")
 public class AuditService {
 	private static Logger log = LoggerFactory.getLogger(AuditService.class);
 
@@ -222,6 +221,7 @@ public class AuditService {
 		return issue_element_map;
 	}
 
+	@Retryable
 	public UXIssueMessage addIssue(
 			String key, 
 			String issue_key) {
@@ -318,6 +318,7 @@ public class AuditService {
 		return element_map.values();
 	}
 
+	@Retryable
 	public void addAllIssues(long id, List<Long> issue_ids) {
 		audit_repo.addAllIssues(id, issue_ids);
 	}
@@ -353,6 +354,7 @@ public class AuditService {
 		return issue_count;	
 	}
 
+	@Retryable
 	public void addAllIssues(long audit_id, Set<UXIssueMessage> issue_messages) {
 		List<Long> issue_ids = issue_messages.stream().map(x -> x.getId()).collect(Collectors.toList());
 		addAllIssues(audit_id, issue_ids);

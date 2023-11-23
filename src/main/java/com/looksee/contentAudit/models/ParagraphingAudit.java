@@ -115,22 +115,20 @@ public class ParagraphingAudit implements IExecutablePageStateAudit {
 		}
 		
 		String description = "";
-
-		Audit audit = new Audit(AuditCategory.CONTENT,
-						 AuditSubcategory.WRITTEN_CONTENT, 
-						 AuditName.PARAGRAPHING, 
-						 points_earned, 
-						 issue_messages, 
-						 AuditLevel.PAGE, 
-						 max_points, 
-						 page_state.getUrl(),
-						 why_it_matters, 
-						 description,
-						 false); 
 						 
-		return audit_service.save(audit);
-		//audit_service.addAllIssues(audit.getId(), issue_messages);
-		//return audit;
+		Audit audit = new Audit(AuditCategory.CONTENT,
+								 AuditSubcategory.WRITTEN_CONTENT, 
+								 AuditName.PARAGRAPHING, 
+								 points_earned, 
+								 AuditLevel.PAGE, 
+								 max_points, 
+								 page_state.getUrl(), 
+								 why_it_matters,
+								 description, 
+								 false); 
+		audit = audit_service.save(audit);
+		audit_service.addAllIssues(audit.getId(), issue_messages);
+		return audit;
 	}
 
 
@@ -167,7 +165,6 @@ public class ParagraphingAudit implements IExecutablePageStateAudit {
 																Priority.MEDIUM, 
 																description, 
 																recommendation, 
-																element,
 																AuditCategory.CONTENT,
 																labels,
 																ada_compliance,
@@ -177,7 +174,7 @@ public class ParagraphingAudit implements IExecutablePageStateAudit {
 																words.length);
 				
 				issue_message = (SentenceIssueMessage) issue_message_service.save(issue_message);
-				//issue_message_service.addElement(issue_message.getId(), element.getId());
+				issue_message_service.addElement(issue_message.getId(), element.getId());
 				issue_messages.add(issue_message);
 				
 				max_points += 1;
@@ -193,7 +190,6 @@ public class ParagraphingAudit implements IExecutablePageStateAudit {
 																Priority.NONE, 
 																description, 
 																recommendation, 
-																element,
 																AuditCategory.CONTENT,
 																labels,
 																ada_compliance,
@@ -203,7 +199,7 @@ public class ParagraphingAudit implements IExecutablePageStateAudit {
 																words.length);
 				
 				issue_message = (SentenceIssueMessage) issue_message_service.save(issue_message);
-				//issue_message_service.addElement(issue_message.getId(), element.getId());
+				issue_message_service.addElement(issue_message.getId(), element.getId());
 				issue_messages.add(issue_message);
 			}
 		}

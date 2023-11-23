@@ -35,6 +35,7 @@ resilience4j.retry:
                 - org.neo4j.driver.exceptions.TransientException
                 - org.neo4j.driver.exceptions.ServiceUnavailableException
                 - org.neo4j.ogm.exception.TransactionException
+                - org.springframework.transaction.TransactionSystemException
                 - org.neo4j.ogm.exception.CypherException
                 - java.net.SocketException
                 - java.util.NoSuchElementException

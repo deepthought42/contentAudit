@@ -68,17 +68,16 @@ public class ImagePolicyAudit implements IExecutablePageStateAudit {
 								 AuditSubcategory.IMAGERY, 
 								 AuditName.IMAGE_POLICY, 
 								 image_policy_score.getPointsAchieved(), 
-								 image_policy_score.getIssueMessages(), 
 								 AuditLevel.PAGE, 
 								 image_policy_score.getMaxPossiblePoints(), 
-								 page_state.getUrl(),
-								 why_it_matters, 
-								 description,
+								 page_state.getUrl(), 
+								 why_it_matters,
+								 description, 
 								 false); 
 		
-		return audit_service.save(audit);
-		//audit_service.addAllIssues(audit.getId(), image_policy_score.getIssueMessages());
-		//return audit;
+		audit = audit_service.save(audit);
+		audit_service.addAllIssues(audit.getId(), image_policy_score.getIssueMessages());
+		return audit;
 	}
 
 
@@ -114,7 +113,6 @@ public class ImagePolicyAudit implements IExecutablePageStateAudit {
 																	Priority.MEDIUM, 
 																	description, 
 																	recommendation, 
-																	element,
 																	AuditCategory.CONTENT,
 																	labels,
 																	ada_compliance,
@@ -123,7 +121,7 @@ public class ImagePolicyAudit implements IExecutablePageStateAudit {
 																	1);
 					
 					issue_message = (ReadingComplexityIssueMessage) issue_message_service.save(issue_message);
-					//issue_message_service.addElement(issue_message.getId(), element.getId());
+					issue_message_service.addElement(issue_message.getId(), element.getId());
 					issue_messages.add(issue_message);
 					
 					points_earned += 0;
@@ -141,7 +139,6 @@ public class ImagePolicyAudit implements IExecutablePageStateAudit {
 																	Priority.MEDIUM, 
 																	description, 
 																	recommendation, 
-																	element,
 																	AuditCategory.CONTENT,
 																	labels,
 																	ada_compliance,
@@ -150,7 +147,7 @@ public class ImagePolicyAudit implements IExecutablePageStateAudit {
 																	1);
 					
 					issue_message = (ReadingComplexityIssueMessage) issue_message_service.save(issue_message);
-					//issue_message_service.addElement(issue_message.getId(), element.getId());
+					issue_message_service.addElement(issue_message.getId(), element.getId());
 					issue_messages.add(issue_message);
 					
 					points_earned += 0;
@@ -167,7 +164,6 @@ public class ImagePolicyAudit implements IExecutablePageStateAudit {
 																	Priority.NONE, 
 																	description, 
 																	recommendation, 
-																	element,
 																	AuditCategory.CONTENT,
 																	labels,
 																	ada_compliance,
@@ -176,7 +172,7 @@ public class ImagePolicyAudit implements IExecutablePageStateAudit {
 																	1);
 
 					issue_message = (ReadingComplexityIssueMessage) issue_message_service.save(issue_message);
-					//issue_message_service.addElement(issue_message.getId(), element.getId());
+					issue_message_service.addElement(issue_message.getId(), element.getId());
 					issue_messages.add(issue_message);
 				}
 			}

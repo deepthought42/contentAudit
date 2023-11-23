@@ -48,9 +48,6 @@ public interface AuditRecordRepository extends Neo4jRepository<AuditRecord, Long
 	@Query("MATCH (page_audit:PageAuditRecord)-[]->(page_state:PageState{url:$url}) RETURN page_audit ORDER BY page_audit.created_at DESC LIMIT 1")
 	public Optional<PageAuditRecord> getMostRecentPageAuditRecord(@Param("url") String url);
 
-	@Query("MATCH (page_audit:PageAuditRecord)-[]->(page_state:PageState) WHERE id(page_audit)=$page_audit_id RETURN page_state LIMIT 1")
-	public PageState getPageStateForAuditRecord(@Param("page_audit_id") long page_audit_id);
-	
 	@Query("MATCH (domain_audit:DomainAuditRecord)-[]->(page_state:PageState) WHERE id(domain_audit)=$domain_audit_id RETURN page_state")
 	public Set<PageState> getPageStatesForDomainAuditRecord(@Param("domain_audit_id") long domain_audit_id);
 
@@ -87,5 +84,9 @@ public interface AuditRecordRepository extends Neo4jRepository<AuditRecord, Long
 	@Query("MATCH (page_audit:PageAuditRecord{key:$page_audit_key})-[]->(page_state:PageState) RETURN page_state LIMIT 1")
 	@Deprecated
 	public PageState getPageStateForAuditRecord(@Param("page_audit_key") String page_audit_key);
+	
+	@Query("MATCH (a:PageAuditRecord)-[:FOR]->(ps:PageState) WHERE id(ps)=$id RETURN a ORDER BY a.created_at DESC LIMIT 1")
+	public PageAuditRecord getAuditRecord(@Param("id") long id);
+
 
 }

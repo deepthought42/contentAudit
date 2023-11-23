@@ -6,15 +6,16 @@ public class AuditError extends Message {
 	private String error_message;
 	private AuditCategory audit_category;
 	private double progress;
+	private long audit_record_id;
 	
 	public AuditError(long accountId, 
 					  long auditRecordId, 
 					  String error_message,
 					  AuditCategory category, 
-					  double progress, 
-					  long domainId
+					  double progress
 	) {
-		super(accountId, auditRecordId, domainId);
+		super(accountId);
+		setAuditRecordId(auditRecordId);
 		setErrorMessage(error_message);
 		setAuditCategory(category);
 		setProgress(progress);
@@ -42,6 +43,14 @@ public class AuditError extends Message {
 
 	public void setProgress(double progress) {
 		this.progress = progress;
+	}
+
+	public long getAuditRecordId() {
+		return audit_record_id;
+	}
+
+	public void setAuditRecordId(long audit_record_id) {
+		this.audit_record_id = audit_record_id;
 	}
 
 }

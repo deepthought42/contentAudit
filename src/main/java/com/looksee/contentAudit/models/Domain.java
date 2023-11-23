@@ -23,7 +23,7 @@ public class Domain extends LookseeObject{
 	@Relationship(type = "HAS")
 	private List<PageState> pages;
 	
-	@Relationship(type = "HAS", direction = Direction.INCOMING)
+	@Relationship(type = "HAS")
 	private Set<DomainAuditRecord> audit_records;
 
 	@Relationship(type="USES")

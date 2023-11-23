@@ -8,6 +8,7 @@ import java.util.Optional;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.retry.annotation.Retryable;
 import org.springframework.stereotype.Service;
 
 import com.looksee.contentAudit.models.enums.AuditName;
@@ -16,12 +17,8 @@ import com.looksee.contentAudit.models.repository.ElementStateRepository;
 import com.looksee.contentAudit.models.repository.PageStateRepository;
 import com.looksee.contentAudit.models.Audit;
 import com.looksee.contentAudit.models.ElementState;
-import com.looksee.contentAudit.models.PageAuditRecord;
 import com.looksee.contentAudit.models.PageState;
 import com.looksee.contentAudit.models.Screenshot;
-
-import io.github.resilience4j.retry.annotation.Retry;
-
 
 
 /**
@@ -29,7 +26,6 @@ import io.github.resilience4j.retry.annotation.Retry;
  *
  */
 @Service
-@Retry(name = "neoforj")
 public class PageStateService {
 	@SuppressWarnings("unused")
 	private static Logger log = LoggerFactory.getLogger(PageStateService.class.getName());
@@ -48,6 +44,7 @@ public class PageStateService {
 	 * 
 	 * @pre page_state != null
 	 */
+	@Retryable
 	public PageState save(PageState page_state) throws Exception {
 		assert page_state != null;
 		
@@ -145,29 +142,6 @@ public class PageStateService {
 		return page_state_repo.findByUrl(url);
 	}
 
-	public boolean addElement(long page_id, long element_id) {		
-		Optional<ElementState> element_state = getElementState(page_id, element_id);
-		
-		if(element_state.isPresent()) {
-			return true;
-		}
-		return page_state_repo.addElement(page_id, element_id) != null;
-	}
-
-	private Optional<ElementState> getElementState(long page_id, long element_id) {
-		return page_state_repo.getElementState(page_id, element_id);
-	}
-
-	/**
-	 * Retrieves an {@link AuditRecord} for the page with the given id
-	 * @param id
-	 * @return
-	 */
-	public PageAuditRecord getAuditRecord(long id) {
-		
-		return page_state_repo.getAuditRecord(id);
-	}
-
 	public Optional<PageState> findById(long page_id) {
 		return page_state_repo.findById(page_id);
 	}
@@ -175,12 +149,19 @@ public class PageStateService {
 	public void updateCompositeImageUrl(Long id, String composite_img_url) {
 		page_state_repo.updateCompositeImageUrl(id, composite_img_url);
 	}
-
-	public void addAllElements(long page_state_id, List<Long> element_ids) {
-		page_state_repo.addAllElements(page_state_id, element_ids);
-	}
-
+	
 	public PageState findByDomainAudit(long domainAuditRecordId, long page_state_id) {
 		return page_state_repo.findByDomainAudit(domainAuditRecordId, page_state_id);
+	}
+	
+	/**
+	 * Retrieves the {@link PageState page} that the {@link PageAuditRecord page_audit} is associated with
+	 * 
+	 * @param page_audit_id
+	 * 
+	 * @return {@link PageState page} associated with page_audit or null if no association exists
+	 */
+	public PageState getPageStateForAuditRecord(long page_audit_id) {
+		return page_state_repo.getPageStateForAuditRecord(page_audit_id);
 	}
 }

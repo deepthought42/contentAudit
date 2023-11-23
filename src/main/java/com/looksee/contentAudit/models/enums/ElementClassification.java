@@ -6,7 +6,8 @@ public enum ElementClassification {
 	TEMPLATE("TEMPLATE"), 
 	LEAF("LEAF"), 
 	SLIDER("SLIDER"), 
-	ANCESTOR("ANCESTOR");
+	ANCESTOR("ANCESTOR"), 
+	UNKNOWN("UNKNOWN");
 	
 	private String shortName;
 
