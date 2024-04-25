@@ -1,8 +1,19 @@
 package com.looksee.contentAudit.models.message;
 
+import lombok.Getter;
+import lombok.Setter;
+
+/**
+ * Message that is used by auditors to initiate and perform audits
+ */
 public class PageAuditMessage extends Message {
-	private long page_audit_id;
-	private long page_id;
+	@Getter
+	@Setter
+	private long pageAuditId;
+
+	@Getter
+	@Setter
+	private long pageId;
 	
 	public PageAuditMessage() {}
 	
@@ -12,26 +23,8 @@ public class PageAuditMessage extends Message {
 							long page_audit_id, 
 							long page_id
 	) {
-		super(account_id, domain_audit_id, domain_id);
+		super(account_id);
 		setPageAuditId(page_audit_id);
 		setPageId(page_id);
-	}
-
-	public long getPageAuditId() {
-		return page_audit_id;
-	}
-
-	public void setPageAuditId(long page_audit_id) {
-		this.page_audit_id = page_audit_id;
-	}
-
-	public long getPageId() {
-		return page_id;
-	}
-
-	public void setPageId(long page_id) {
-		this.page_id = page_id;
-	}
-	
-	
+	}	
 }

@@ -2,22 +2,29 @@ package com.looksee.contentAudit.models.message;
 
 import com.looksee.contentAudit.models.enums.AuditCategory;
 
+import lombok.Getter;
+import lombok.Setter;
+
 public class AuditError extends Message {
 	private String error_message;
 	private AuditCategory audit_category;
 	private double progress;
+
+	@Getter
+	@Setter
+	private long auditRecordId;
 	
 	public AuditError(long accountId, 
 					  long auditRecordId, 
 					  String error_message,
 					  AuditCategory category, 
-					  double progress, 
-					  long domainId
+					  double progress
 	) {
-		super(accountId, auditRecordId, domainId);
+		super(accountId);
 		setErrorMessage(error_message);
 		setAuditCategory(category);
 		setProgress(progress);
+		setAuditRecordId(auditRecordId);
 	}
 
 	public String getErrorMessage() {

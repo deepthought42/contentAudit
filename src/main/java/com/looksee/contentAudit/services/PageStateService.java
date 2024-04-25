@@ -10,15 +10,11 @@ import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
-import com.looksee.contentAudit.models.enums.AuditName;
+import com.looksee.contentAudit.models.ElementState;
+import com.looksee.contentAudit.models.PageState;
 import com.looksee.contentAudit.models.enums.ElementClassification;
 import com.looksee.contentAudit.models.repository.ElementStateRepository;
 import com.looksee.contentAudit.models.repository.PageStateRepository;
-import com.looksee.contentAudit.models.Audit;
-import com.looksee.contentAudit.models.ElementState;
-import com.looksee.contentAudit.models.PageAuditRecord;
-import com.looksee.contentAudit.models.PageState;
-import com.looksee.contentAudit.models.Screenshot;
 
 import io.github.resilience4j.retry.annotation.Retry;
 
@@ -93,18 +89,6 @@ public class PageStateService {
 		return element_state_repo.getElementStates(page_state_id);
 	}
 	
-	public List<ElementState> getLinkElementStates(long page_state_id){
-		return page_state_repo.getLinkElementStates(page_state_id);
-	}
-	
-	public List<Screenshot> getScreenshots(String user_id, String page_key){
-		List<Screenshot> screenshots = page_state_repo.getScreenshots(user_id, page_key);
-		if(screenshots == null){
-			return new ArrayList<Screenshot>();
-		}
-		return screenshots;
-	}
-	
 	public List<PageState> findPageStatesWithForm(long account_id, String url, String page_key) {
 		return page_state_repo.findPageStatesWithForm(account_id, url, page_key);
 	}
@@ -122,50 +106,12 @@ public class PageStateService {
 	public List<PageState> findBySourceChecksumForDomain(String url, String src_checksum) {
 		return page_state_repo.findBySourceChecksumForDomain(url, src_checksum);
 	}
-	
-	public List<Audit> getAudits(String page_state_key){
-		assert page_state_key != null;
-		assert !page_state_key.isEmpty();
-		
-		return page_state_repo.getAudits(page_state_key);
-	}
-
-	public Audit findAuditBySubCategory(AuditName subcategory, String page_state_key) {
-		return page_state_repo.findAuditBySubCategory(subcategory.getShortName(), page_state_key);
-	}
-
-	public List<ElementState> getVisibleLeafElements(String page_state_key) {
-		return page_state_repo.getVisibleLeafElements(page_state_key);
-	}
 
 	public PageState findByUrl(String url) {
 		assert url != null;
 		assert !url.isEmpty();
 		
 		return page_state_repo.findByUrl(url);
-	}
-
-	public boolean addElement(long page_id, long element_id) {		
-		Optional<ElementState> element_state = getElementState(page_id, element_id);
-		
-		if(element_state.isPresent()) {
-			return true;
-		}
-		return page_state_repo.addElement(page_id, element_id) != null;
-	}
-
-	private Optional<ElementState> getElementState(long page_id, long element_id) {
-		return page_state_repo.getElementState(page_id, element_id);
-	}
-
-	/**
-	 * Retrieves an {@link AuditRecord} for the page with the given id
-	 * @param id
-	 * @return
-	 */
-	public PageAuditRecord getAuditRecord(long id) {
-		
-		return page_state_repo.getAuditRecord(id);
 	}
 
 	public Optional<PageState> findById(long page_id) {
@@ -183,4 +129,8 @@ public class PageStateService {
 	public PageState findByDomainAudit(long domainAuditRecordId, long page_state_id) {
 		return page_state_repo.findByDomainAudit(domainAuditRecordId, page_state_id);
 	}
+
+    public PageState findByAuditRecordId(long pageAuditId) {
+        return page_state_repo.findByAuditRecordId(pageAuditId);
+    }
 }

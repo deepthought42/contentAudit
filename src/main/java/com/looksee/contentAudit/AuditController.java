@@ -48,7 +48,9 @@ import com.looksee.contentAudit.models.message.PageAuditMessage;
 import com.looksee.contentAudit.services.AuditRecordService;
 import com.looksee.contentAudit.services.PageStateService;
 
-// PubsubController consumes a Pub/Sub message.
+/**
+ * API controller that performs a content audit.
+ */
 @RestController
 public class AuditController {
 	private static Logger log = LoggerFactory.getLogger(AuditController.class);
@@ -75,8 +77,9 @@ public class AuditController {
 	private ImagePolicyAudit image_policy_audit;
 	
 	@RequestMapping(value = "/", method = RequestMethod.POST)
-	public ResponseEntity<String> receiveMessage(@RequestBody Body body) throws JsonMappingException, JsonProcessingException, ExecutionException, InterruptedException {
-	 
+	public ResponseEntity<String> receiveMessage(@RequestBody Body body) 
+		throws JsonMappingException, JsonProcessingException, ExecutionException, InterruptedException 
+	{
 		Body.Message message = body.getMessage();
 		String data = message.getData();
 	    String target = !data.isEmpty() ? new String(Base64.getDecoder().decode(data)) : "";
@@ -86,11 +89,11 @@ public class AuditController {
 	    PageAuditMessage audit_record_msg = input_mapper.readValue(target, PageAuditMessage.class);
 	    
 	    try {
-	    	//page_audit_record_service.findById(audit_record_msg.getPageAuditId()).get();
 	    	log.warn("page audit id = "+audit_record_msg.getPageAuditId());
 	    	AuditRecord audit_record = audit_record_service.findById(audit_record_msg.getPageAuditId()).get();
-			PageState page = page_state_service.findById(audit_record_msg.getPageId()).get();
-			
+			log.warn("audit record message = "+audit_record_msg.getPageId());
+			//PageState page = page_state_service.findById(audit_record_msg.getPageId()).get();
+			PageState page = page_state_service.findByAuditRecordId(audit_record_msg.getPageAuditId());
 			page.setElements(page_state_service.getElementStates(page.getId()));
 			log.warn("evaluating "+page.getElements().size()+" element state for content audit with page ID :: "+page.getId());
 	    	Set<Audit> audits = audit_record_service.getAllAudits(audit_record.getId());
@@ -109,7 +112,7 @@ public class AuditController {
 			audit_record_topic.publish(audit_record_json);
 			  */
 //			try {
-	    		if(!auditAlreadyExists(audits, AuditName.ALT_TEXT)) {    			
+	    		if(!auditAlreadyExists(audits, AuditName.ALT_TEXT)) {
 					Audit alt_text_audit = image_alt_text_auditor.execute(page, audit_record, null);
 					audit_record_service.addAudit(audit_record_msg.getPageAuditId(), alt_text_audit.getId());
 	    		}
