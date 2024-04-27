@@ -83,13 +83,11 @@ public class ImageAltTextAudit implements IExecutablePageStateAudit {
 
 		//score each link element
 		for(ElementState image_element : image_elements) {
-			
 			Document jsoup_doc = Jsoup.parseBodyFragment(image_element.getOuterHtml(), page_state.getUrl());
 			Element element = jsoup_doc.getElementsByTag(tag_name).first();
 			
 			//Check if element has "alt" attribute present
-			if(element.hasAttr("alt")) {				
-
+			if(element.hasAttr("alt")) {
 				if(element.attr("alt").isEmpty()) {
 					String title = "Image alternative text value is empty";
 					String description = "Image alternative text value is empty";
@@ -98,7 +96,7 @@ public class ImageAltTextAudit implements IExecutablePageStateAudit {
 																	Priority.HIGH, 
 																	description, 
 																	"Images without alternative text defined as a non empty string value", 
-																	image_element,
+																	null,
 																	AuditCategory.CONTENT,
 																	labels,
 																	ada_compliance,
@@ -107,7 +105,7 @@ public class ImageAltTextAudit implements IExecutablePageStateAudit {
 																	1);
 					
 					issue_message = (ElementStateIssueMessage) issue_message_service.save(issue_message);
-					//issue_message_service.addElement(issue_message.getId(), image_element.getId());
+					issue_message_service.addElement(issue_message.getId(), image_element.getId());
 					issue_messages.add(issue_message);
 				}
 				else {
@@ -118,7 +116,7 @@ public class ImageAltTextAudit implements IExecutablePageStateAudit {
 																	Priority.NONE, 
 																	description, 
 																	"Images without alternative text defined as a non empty string value", 
-																	image_element,
+																	null,
 																	AuditCategory.CONTENT,
 																	labels,
 																	ada_compliance,
@@ -127,7 +125,7 @@ public class ImageAltTextAudit implements IExecutablePageStateAudit {
 																	1);
 
 					issue_message = (ElementStateIssueMessage) issue_message_service.save(issue_message);
-					//issue_message_service.addElement(issue_message.getId(), image_element.getId());
+					issue_message_service.addElement(issue_message.getId(), image_element.getId());
 					issue_messages.add(issue_message);
 				}
 			}
@@ -139,7 +137,7 @@ public class ImageAltTextAudit implements IExecutablePageStateAudit {
 																Priority.HIGH, 
 																description, 
 																"Images without alternative text attribute", 
-																image_element,
+																null,
 																AuditCategory.CONTENT, 
 																labels,
 																ada_compliance,
@@ -148,7 +146,7 @@ public class ImageAltTextAudit implements IExecutablePageStateAudit {
 																1);
 				
 				issue_message = (ElementStateIssueMessage) issue_message_service.save(issue_message);
-				//issue_message_service.addElement(issue_message.getId(), image_element.getId());
+				issue_message_service.addElement(issue_message.getId(), image_element.getId());
 				issue_messages.add(issue_message);
 			}
 		}
@@ -182,16 +180,17 @@ public class ImageAltTextAudit implements IExecutablePageStateAudit {
 								 AuditSubcategory.IMAGERY,
 								 AuditName.ALT_TEXT,
 								 points_earned,
-								 issue_messages,
+								 null,
 								 AuditLevel.PAGE,
 								 max_points,
 								 page_state.getUrl(), 
 								 why_it_matters, 
 								 description,
 								 true);
-		return audit_service.save(audit);
-		//audit_service.addAllIssues(audit.getId(), issue_messages);
+								 
+		audit = audit_service.save(audit);
+		audit_service.addAllIssues(audit.getId(), issue_messages);
 		
-		//return audit;
+		return audit;
 	}
 }

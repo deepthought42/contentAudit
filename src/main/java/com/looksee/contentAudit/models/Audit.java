@@ -93,7 +93,17 @@ public class Audit extends LookseeObject {
 	}
 
 	public Audit clone() {
-		return new Audit(getCategory(), getSubcategory(), getName(), getPoints(), getMessages(), getLevel(), getTotalPossiblePoints(), getUrl(), getWhyItMatters(), getDescription(), isAccessiblity());
+		return new Audit(getCategory(), 
+							getSubcategory(), 
+							getName(),
+							getPoints(), 
+							getMessages(),
+							getLevel(),
+							getTotalPossiblePoints(),
+							getUrl(),
+							getWhyItMatters(),
+							getDescription(),
+							isAccessiblity());
 	}
 
 	/**
