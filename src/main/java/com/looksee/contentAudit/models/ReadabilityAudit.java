@@ -130,7 +130,7 @@ public class ReadabilityAudit implements IExecutablePageStateAudit {
 					ReadingComplexityIssueMessage issue_message = new ReadingComplexityIssueMessage(Priority.LOW, 
 																								  description,
 																								  recommendation,
-																								  element,
+																								  null,
 																								  AuditCategory.CONTENT,
 																								  labels,
 																								  ada_compliance,
@@ -140,7 +140,7 @@ public class ReadabilityAudit implements IExecutablePageStateAudit {
 																								  ease_of_reading_score);
 					
 					issue_message = (ReadingComplexityIssueMessage) issue_message_service.save(issue_message);
-					//issue_message_service.addElement(issue_message.getId(), element.getId());
+					issue_message_service.addElement(issue_message.getId(), element.getId());
 					issue_messages.add(issue_message);
 				}
 				else {
@@ -158,7 +158,7 @@ public class ReadabilityAudit implements IExecutablePageStateAudit {
 					ReadingComplexityIssueMessage issue_message = new ReadingComplexityIssueMessage(Priority.NONE, 
 																								  description,
 																								  recommendation,
-																								  element,
+																								  null,
 																								  AuditCategory.CONTENT,
 																								  labels,
 																								  ada_compliance,
@@ -168,7 +168,7 @@ public class ReadabilityAudit implements IExecutablePageStateAudit {
 																								  ease_of_reading_score);
 					
 					issue_message = (ReadingComplexityIssueMessage) issue_message_service.save(issue_message);
-					//issue_message_service.addElement(issue_message.getId(), element.getId());
+					issue_message_service.addElement(issue_message.getId(), element.getId());
 					issue_messages.add(issue_message);
 				}
 			} catch(Exception e) {

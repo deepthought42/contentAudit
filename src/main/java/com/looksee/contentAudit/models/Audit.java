@@ -74,7 +74,6 @@ public class Audit extends LookseeObject {
 		
 		assert category != null;
 		assert subcategory != null;
-		assert ux_issues != null;
 		assert level != null;
 		
 		setName(name);

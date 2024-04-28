@@ -63,7 +63,7 @@ public class ImageAudit implements IExecutablePageStateAudit {
 								 AuditSubcategory.IMAGERY, 
 								 AuditName.IMAGE_COPYRIGHT, 
 								 copyright_score.getPointsAchieved(), 
-								 copyright_score.getIssueMessages(), 
+								 null, 
 								 AuditLevel.PAGE, 
 								 copyright_score.getMaxPossiblePoints(), 
 								 page_state.getUrl(),
@@ -71,9 +71,9 @@ public class ImageAudit implements IExecutablePageStateAudit {
 								 description,
 								 false); 
 						 
-		return audit_service.save(audit);
-		//audit_service.addAllIssues(audit.getId(), copyright_score.getIssueMessages());
-		//return audit;
+		audit = audit_service.save(audit);
+		audit_service.addAllIssues(audit.getId(), copyright_score.getIssueMessages());
+		return audit;
 	}
 
 

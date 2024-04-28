@@ -18,13 +18,11 @@ public class PageAuditMessage extends Message {
 	public PageAuditMessage() {}
 	
 	public PageAuditMessage(long account_id,
-							long domain_id,
-							long domain_audit_id,
 							long page_audit_id, 
 							long page_id
 	) {
 		super(account_id);
 		setPageAuditId(page_audit_id);
 		setPageId(page_id);
-	}	
+	}
 }

@@ -68,7 +68,7 @@ public class ImagePolicyAudit implements IExecutablePageStateAudit {
 								 AuditSubcategory.IMAGERY, 
 								 AuditName.IMAGE_POLICY, 
 								 image_policy_score.getPointsAchieved(), 
-								 image_policy_score.getIssueMessages(), 
+								 null, 
 								 AuditLevel.PAGE, 
 								 image_policy_score.getMaxPossiblePoints(), 
 								 page_state.getUrl(),
@@ -76,9 +76,9 @@ public class ImagePolicyAudit implements IExecutablePageStateAudit {
 								 description,
 								 false); 
 		
-		return audit_service.save(audit);
-		//audit_service.addAllIssues(audit.getId(), image_policy_score.getIssueMessages());
-		//return audit;
+		audit = audit_service.save(audit);
+		audit_service.addAllIssues(audit.getId(), image_policy_score.getIssueMessages());
+		return audit;
 	}
 
 

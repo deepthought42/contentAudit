@@ -120,7 +120,7 @@ public class ParagraphingAudit implements IExecutablePageStateAudit {
 						 AuditSubcategory.WRITTEN_CONTENT, 
 						 AuditName.PARAGRAPHING, 
 						 points_earned, 
-						 issue_messages, 
+						 null, 
 						 AuditLevel.PAGE, 
 						 max_points, 
 						 page_state.getUrl(),
@@ -128,9 +128,9 @@ public class ParagraphingAudit implements IExecutablePageStateAudit {
 						 description,
 						 false); 
 						 
-		return audit_service.save(audit);
-		//audit_service.addAllIssues(audit.getId(), issue_messages);
-		//return audit;
+		audit = audit_service.save(audit);
+		audit_service.addAllIssues(audit.getId(), issue_messages);
+		return audit;
 	}
 
 
