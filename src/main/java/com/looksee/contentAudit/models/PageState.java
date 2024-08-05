@@ -49,6 +49,10 @@ public class PageState extends LookseeObject {
 
 	@Getter
 	@Setter
+	private String generalizedSrc;
+
+	@Getter
+	@Setter
 	private String url;
 
 	@Getter
@@ -85,11 +89,11 @@ public class PageState extends LookseeObject {
 
 	@Getter
 	@Setter
-	private boolean landable;
-
+	private boolean elementExtractionComplete;
+	
 	@Getter
 	@Setter
-	private boolean elementExtractionComplete;
+	private boolean interactiveElementExtractionComplete;
 	
 	@Getter
 	@Setter
@@ -156,7 +160,6 @@ public class PageState extends LookseeObject {
 		setBrowser(BrowserType.CHROME);
 		setElementExtractionComplete(false);
 		setAuditRecordId(-1L);
-		
 	}
 	
 	/**
@@ -181,8 +184,7 @@ public class PageState extends LookseeObject {
 	 * @throws MalformedURLException 
 	 */
 	public PageState(String screenshot_url, 
-					String src, 
-					boolean isLandable, 
+					String src,
 					long scroll_x_offset, 
 					long scroll_y_offset, 
 					int viewport_width,
@@ -203,7 +205,6 @@ public class PageState extends LookseeObject {
 					Set<String> icon_links
 	) {
 		assert screenshot_url != null;
-		assert elements != null;
 		assert src != null;
 		assert !src.isEmpty();
 		assert browser_type != null;
@@ -215,7 +216,6 @@ public class PageState extends LookseeObject {
 		setViewportWidth(viewport_width);
 		setViewportHeight(viewport_height);
 		setBrowser(browser_type);
-		setLandable(isLandable);
 		setSrc(src);
 		setScrollXOffset(scroll_x_offset);
 		setScrollYOffset(scroll_y_offset);
@@ -233,9 +233,12 @@ public class PageState extends LookseeObject {
 		setStylesheetUrls( stylesheets);
 		setScriptUrls( script_urls);
 		setFaviconUrl(icon_links);
+		setInteractiveElementExtractionComplete(false);
+		setElementExtractionComplete(false);
 		setKeywords(new HashSet<>());
 		setElementExtractionComplete(false);
 		setAuditRecordId(audit_record_id);
+		setGeneralizedSrc(BrowserService.generalizeSrc(src));
 		setKey(generateKey());
 	}
 
@@ -323,7 +326,6 @@ public class PageState extends LookseeObject {
 		List<ElementState> elements = new ArrayList<ElementState>(getElements());
 		PageState page = new PageState(getViewportScreenshotUrl(), 
 							 getSrc(), 
-							 isLandable(), 
 							 getScrollXOffset(), 
 							 getScrollYOffset(), 
 							 getViewportWidth(), 
@@ -409,12 +411,7 @@ public class PageState extends LookseeObject {
 	 * @pre page != null
 	 */
 	public String generateKey() {
-		//String gen_src = BrowserService.generalizeSrc(BrowserService.extractBody(this.getSrc()) );
-		String gen_src = BrowserService.generalizeSrc(this.getSrc());
-
-		log.warn("Generalized source = "+gen_src);
-
-		return "pagestate" + getAuditRecordId()+ org.apache.commons.codec.digest.DigestUtils.sha256Hex( getUrl() + gen_src +getBrowser());
+		return "pagestate" + getAuditRecordId()+ org.apache.commons.codec.digest.DigestUtils.sha256Hex( getUrl() + getGeneralizedSrc() +getBrowser());
 	}
 
 	public void addElements(List<ElementState> elements) {
@@ -426,7 +423,6 @@ public class PageState extends LookseeObject {
 		}
 	}
 
-	
 	@Override
 	public String toString() {
 		return "(page => { key = "+getKey()+"; url = "+getUrl();
