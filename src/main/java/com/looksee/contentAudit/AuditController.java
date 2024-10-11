@@ -38,14 +38,19 @@ import com.fasterxml.jackson.databind.json.JsonMapper;
 import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule;
 import com.looksee.contentAudit.gcp.PubSubAuditUpdatePublisherImpl;
 import com.looksee.contentAudit.mapper.Body;
+import com.looksee.contentAudit.models.AppletAltTextAudit;
 import com.looksee.contentAudit.models.Audit;
 import com.looksee.contentAudit.models.AuditRecord;
+import com.looksee.contentAudit.models.CanvasAltTextAudit;
+import com.looksee.contentAudit.models.IframeAltTextAudit;
 import com.looksee.contentAudit.models.ImageAltTextAudit;
 import com.looksee.contentAudit.models.ImageAudit;
 import com.looksee.contentAudit.models.ImagePolicyAudit;
+import com.looksee.contentAudit.models.ObjectAltTextAudit;
 import com.looksee.contentAudit.models.PageState;
 import com.looksee.contentAudit.models.ParagraphingAudit;
 import com.looksee.contentAudit.models.ReadabilityAudit;
+import com.looksee.contentAudit.models.SVGAltTextAudit;
 import com.looksee.contentAudit.models.enums.AuditCategory;
 import com.looksee.contentAudit.models.enums.AuditLevel;
 import com.looksee.contentAudit.models.enums.AuditName;
@@ -69,6 +74,21 @@ public class AuditController {
 	
 	@Autowired
 	private ImageAltTextAudit image_alt_text_auditor;
+
+	@Autowired
+	private AppletAltTextAudit appletAllAltTextAudit;
+
+	@Autowired
+	private CanvasAltTextAudit canvasAltTextAudit;
+
+	@Autowired
+	private IframeAltTextAudit iframeAltTextAudit;
+
+	@Autowired
+	private ObjectAltTextAudit objectAltTextAudit;
+
+	@Autowired
+	private SVGAltTextAudit svgAltTextAudit;
 
 	@Autowired
 	private ParagraphingAudit paragraph_auditor;
@@ -106,8 +126,23 @@ public class AuditController {
 	    	Set<Audit> audits = audit_record_service.getAllAudits(audit_record.getId());
 
 			if(!auditAlreadyExists(audits, AuditName.ALT_TEXT)) {
-				Audit alt_text_audit = image_alt_text_auditor.execute(page, audit_record, null);
-				audit_record_service.addAudit(audit_record_msg.getPageAuditId(), alt_text_audit.getId());
+				Audit img_alt_text_audit = image_alt_text_auditor.execute(page, audit_record, null);
+				audit_record_service.addAudit(audit_record_msg.getPageAuditId(), img_alt_text_audit.getId());
+
+				Audit applet_alt_text_audit = appletAllAltTextAudit.execute(page, audit_record, null);
+				audit_record_service.addAudit(audit_record_msg.getPageAuditId(), applet_alt_text_audit.getId());
+
+				Audit canvas_alt_text_audit = canvasAltTextAudit.execute(page, audit_record, null);
+				audit_record_service.addAudit(audit_record_msg.getPageAuditId(), canvas_alt_text_audit.getId());
+
+				Audit iframe_alt_text_audit = iframeAltTextAudit.execute(page, audit_record, null);
+				audit_record_service.addAudit(audit_record_msg.getPageAuditId(), iframe_alt_text_audit.getId());
+
+				Audit object_alt_text_audit = objectAltTextAudit.execute(page, audit_record, null);
+				audit_record_service.addAudit(audit_record_msg.getPageAuditId(), object_alt_text_audit.getId());
+
+				Audit svg_alt_text_audit = svgAltTextAudit.execute(page, audit_record, null);
+				audit_record_service.addAudit(audit_record_msg.getPageAuditId(), svg_alt_text_audit.getId());
 			}
 
 			if(!auditAlreadyExists(audits, AuditName.READING_COMPLEXITY)) {
@@ -145,8 +180,8 @@ public class AuditController {
 		AuditProgressUpdate audit_update = new AuditProgressUpdate(audit_record_msg.getAccountId(),
 															1.0, 
 															"Content Audit Compelete!",
-																	AuditCategory.CONTENT, 
-																	AuditLevel.PAGE, 
+																	AuditCategory.CONTENT,
+																	AuditLevel.PAGE,
 																	audit_record_msg.getPageAuditId());
 
 		String audit_record_json = mapper.writeValueAsString(audit_update);
@@ -156,7 +191,7 @@ public class AuditController {
 	}
 	
 	/**
-	 * Checks if the any of the provided {@link Audit audits} have a name that matches 
+	 * Checks if the any of the provided {@link Audit audits} have a name that matches
 	 * 		the provided {@linkplain AuditName}
 	 *
 	 * @param audits

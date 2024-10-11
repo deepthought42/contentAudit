@@ -18,9 +18,9 @@ public interface UXIssueMessageRepository extends Neo4jRepository<UXIssueMessage
 	@Query("MATCH (uim:UXIssueMessage)-[:EXAMPLE]->(e:ElementState) WHERE id(uim)=$id RETURN e")
 	public ElementState getGoodExample(@Param("id") long issue_id);
 
-	@Query("MATCH (uim:UXIssueMessage) WITH uim MATCH (e:ElementState) WHERE id(uim)=$issue_id AND id(e)=$element_id MERGE (uim)-[r:FOR]->(e) RETURN r")
+	@Query("MATCH (uim:UXIssueMessage) MATCH (e:ElementState) WHERE id(uim)=$issue_id AND id(e)=$element_id MERGE (uim)-[r:FOR]->(e) RETURN r")
 	public void addElement(@Param("issue_id") long issue_id, @Param("element_id") long element_id);
 
-	@Query("MATCH (uim:UXIssueMessage) WITH uim MATCH (e:PageState) WHERE id(uim)=$issue_id AND id(e)=$page_id MERGE (uim)-[r:FOR]->(e) RETURN r")
+	@Query("MATCH (uim:UXIssueMessage) MATCH (e:PageState) WHERE id(uim)=$issue_id AND id(e)=$page_id MERGE (uim)-[r:FOR]->(e) RETURN r")
 	public void addPage(@Param("issue_id") long issue_id, @Param("page_id") long page_id);
 }

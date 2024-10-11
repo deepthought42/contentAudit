@@ -21,7 +21,6 @@ import com.looksee.contentAudit.models.enums.AuditName;
 import com.looksee.contentAudit.models.enums.AuditSubcategory;
 import com.looksee.contentAudit.models.enums.Priority;
 import com.looksee.contentAudit.services.AuditService;
-import com.looksee.contentAudit.services.PageStateService;
 import com.looksee.contentAudit.services.UXIssueMessageService;
 
 
@@ -33,9 +32,6 @@ import com.looksee.contentAudit.services.UXIssueMessageService;
 public class ImageAltTextAudit implements IExecutablePageStateAudit {
 	@SuppressWarnings("unused")
 	private static Logger log = LoggerFactory.getLogger(ImageAltTextAudit.class);
-
-	@Autowired
-	private PageStateService page_state_service;
 	
 	@Autowired
 	private AuditService audit_service;
@@ -63,15 +59,20 @@ public class ImageAltTextAudit implements IExecutablePageStateAudit {
 		Set<UXIssueMessage> issue_messages = new HashSet<>();
 
 		Set<String> labels = new HashSet<>();
-		labels.add("accessibility");
 		labels.add("alt_text");
 		labels.add("wcag");
-		
-		String tag_name = "img";
-		List<ElementState> image_elements = new ArrayList<>();
+
+		// tags not covered = Object, applet, iframe, svg, canvas, video, audio and figure
+		List<ElementState> alt_text_elements = new ArrayList<>();
 		for(ElementState element : page_state.getElements()) {
-			if(element.getName().equalsIgnoreCase(tag_name)) {
-				image_elements.add(element);
+			if("area".equalsIgnoreCase(element.getName())) {
+				alt_text_elements.add(element);
+			}
+			else if("input".equalsIgnoreCase(element.getName())) {
+				alt_text_elements.add(element);
+			}
+			else if("embed".equalsIgnoreCase(element.getName())) {
+				alt_text_elements.add(element);
 			}
 		}
 		
@@ -82,20 +83,20 @@ public class ImageAltTextAudit implements IExecutablePageStateAudit {
 				" ‘Alt’ text for images present on the website.";
 
 		//score each link element
-		for(ElementState image_element : image_elements) {
-			Document jsoup_doc = Jsoup.parseBodyFragment(image_element.getOuterHtml(), page_state.getUrl());
-			Element element = jsoup_doc.getElementsByTag(tag_name).first();
+		for(ElementState alt_element : alt_text_elements) {
+			Document jsoup_doc = Jsoup.parseBodyFragment(alt_element.getOuterHtml(), page_state.getUrl());
+			Element element = jsoup_doc.getElementsByTag(alt_element.getName()).first();
 			
 			//Check if element has "alt" attribute present
 			if(element.hasAttr("alt")) {
 				if(element.attr("alt").isEmpty()) {
-					String title = "Image alternative text value is empty";
-					String description = "Image alternative text value is empty";
+					String title = "Alternative text value is empty";
+					String description = "Alternative text value is empty";
 					
 					ElementStateIssueMessage issue_message = new ElementStateIssueMessage(
 																	Priority.HIGH, 
 																	description, 
-																	"Images without alternative text defined as a non empty string value", 
+																	alt_element.getName()+" tag should have alternative text defined",
 																	null,
 																	AuditCategory.CONTENT,
 																	labels,
@@ -105,7 +106,7 @@ public class ImageAltTextAudit implements IExecutablePageStateAudit {
 																	1);
 					
 					issue_message = (ElementStateIssueMessage) issue_message_service.save(issue_message);
-					issue_message_service.addElement(issue_message.getId(), image_element.getId());
+					issue_message_service.addElement(issue_message.getId(), alt_element.getId());
 					issue_messages.add(issue_message);
 				}
 				else {
@@ -113,9 +114,9 @@ public class ImageAltTextAudit implements IExecutablePageStateAudit {
 					String description = "Well done! By providing an alternative text value, you are providing a more inclusive experience";
 					
 					ElementStateIssueMessage issue_message = new ElementStateIssueMessage(
-																	Priority.NONE, 
-																	description, 
-																	"Images without alternative text defined as a non empty string value", 
+																	Priority.NONE,
+																	description,
+																	"",
 																	null,
 																	AuditCategory.CONTENT,
 																	labels,
@@ -125,7 +126,7 @@ public class ImageAltTextAudit implements IExecutablePageStateAudit {
 																	1);
 
 					issue_message = (ElementStateIssueMessage) issue_message_service.save(issue_message);
-					issue_message_service.addElement(issue_message.getId(), image_element.getId());
+					issue_message_service.addElement(issue_message.getId(), alt_element.getId());
 					issue_messages.add(issue_message);
 				}
 			}
@@ -136,7 +137,7 @@ public class ImageAltTextAudit implements IExecutablePageStateAudit {
 				ElementStateIssueMessage issue_message = new ElementStateIssueMessage(
 																Priority.HIGH, 
 																description, 
-																"Images without alternative text attribute", 
+																alt_element.getName()+" tag should have 'alt' text attribute defined",
 																null,
 																AuditCategory.CONTENT, 
 																labels,
@@ -146,7 +147,7 @@ public class ImageAltTextAudit implements IExecutablePageStateAudit {
 																1);
 				
 				issue_message = (ElementStateIssueMessage) issue_message_service.save(issue_message);
-				issue_message_service.addElement(issue_message.getId(), image_element.getId());
+				issue_message_service.addElement(issue_message.getId(), alt_element.getId());
 				issue_messages.add(issue_message);
 			}
 		}

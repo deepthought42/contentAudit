@@ -67,19 +67,19 @@ public interface DomainRepository extends Neo4jRepository<Domain, Long> {
 	@Query("MATCH (account:Account)-[:HAS_DOMAIN]->(d:Domain{host:$url}) MATCH (d)-[:HAS_TEST]->(:Test) MATCH (t)-[]->(p:PageLoadAnimation) WHERE id(account)=$account_id RETURN p")
 	public Set<PageLoadAnimation> getAnimations(@Param("account_id") long account_id, @Param("url") String url);
 
-	@Query("MATCH (d:Domain) WITH d MATCH (p:PageState) WHERE id(d)=$domain_id AND id(p)=$page_id MERGE (d)-[:HAS]->(p) RETURN p")
+	@Query("MATCH (d:Domain) MATCH (p:PageState) WHERE id(d)=$domain_id AND id(p)=$page_id MERGE (d)-[:HAS]->(p) RETURN p")
 	public PageState addPage(@Param("domain_id") long domain_id, @Param("page_id") long page_id);
 
 	@Query("MATCH (d:Domain{url:$url})-[]->(audit:DomainAuditRecord) RETURN audit ORDER BY audit.created_at DESC LIMIT 1")
 	public Optional<DomainAuditRecord> getMostRecentAuditRecord(@Param("url") String url);
 
-	@Query("MATCH(d:Domain) WITH d MATCH (audit:DomainAuditRecord)-[:HAS]->(d) WITH audit WHERE id(d)=$id RETURN audit ORDER BY audit.created_at DESC LIMIT 1")
+	@Query("MATCH(d:Domain) MATCH (audit:DomainAuditRecord)-[:HAS]->(d) WHERE id(d)=$id RETURN audit ORDER BY audit.created_at DESC LIMIT 1")
 	public Optional<DomainAuditRecord> getMostRecentAuditRecord(@Param("id") long id);
 
 	@Query("MATCH (d:Domain)-[*]->(:PageState{key:$page_state_key}) RETURN d LIMIT 1")
 	public Domain findByPageState(@Param("page_state_key") String page_state_key);
 
-	@Query("MATCH (d:Domain) WITH d MATCH (audit:AuditRecord{key:$audit_record_key}) WHERE id(d) = $domain_id MERGE (d)<-[:HAS]-(audit) RETURN audit")
+	@Query("MATCH (d:Domain) MATCH (audit:AuditRecord{key:$audit_record_key}) WHERE id(d) = $domain_id MERGE (d)<-[:HAS]-(audit) RETURN audit")
 	public void addAuditRecord(@Param("domain_id") long domain_id, @Param("audit_record_key") String audit_record_key);
 
 	@Query("MATCH (d:Domain{key:$domain_key})-[]->(audit:AuditRecord) RETURN audit")
@@ -106,18 +106,18 @@ public interface DomainRepository extends Neo4jRepository<Domain, Long> {
 	@Query("MATCH (d:Domain)-[]->(setting:DesignSystem) WHERE id(d)=$domain_id SET setting.allowed_image_characteristics=$image_characteristics RETURN setting")
 	public DesignSystem updateAllowedImageCharacteristics(@Param("domain_id") long domain_id, @Param("image_characteristics") List<String> allowed_image_characteristics);
 
-	@Query("MATCH(d:Domain) WITH d WHERE id(d)=$domain_id MATCH (ar:DomainAuditRecord)-[]->(d) MATCH y=(ar)-[:HAS]->(page_audit:PageAuditRecord) MATCH z=(page_audit)-[:HAS]->(audit:Audit) RETURN y,z")
+	@Query("MATCH(d:Domain) WHERE id(d)=$domain_id MATCH (ar:DomainAuditRecord)-[]->(d) MATCH y=(ar)-[:HAS]->(page_audit:PageAuditRecord) MATCH z=(page_audit)-[:HAS]->(audit:Audit) RETURN y,z")
 	public List<DomainAuditRecord> getAuditRecordHistory(@Param("domain_id") long domain_id);
 
 	@Query("MATCH (domain:Domain)-[:USES]->(ds:DesignSystem) WHERE id(domain)=$domain_id RETURN ds LIMIT 1")
 	public Optional<DesignSystem> getDesignSystem(@Param("domain_id") long domain_id);
 
-	@Query("MATCH (d:Domain) WITH d MATCH (design:DesignSystem) WHERE id(d)=$domain_id AND id(design)=$design_system_id MERGE (d)-[:USES]->(design) RETURN design")
+	@Query("MATCH (d:Domain) MATCH (design:DesignSystem) WHERE id(d)=$domain_id AND id(design)=$design_system_id MERGE (d)-[:USES]->(design) RETURN design")
 	public DesignSystem addDesignSystem(@Param("domain_id") long domain_id, @Param("design_system_id") long design_system_id);
 
 	@Query("MATCH (d:Domain)-[]->(user:TestUser) WHERE id(d)=$domain_id RETURN user")
 	public List<TestUser> findTestUsers(@Param("domain_id") long domain_id);
 
-	@Query("MATCH (d:Domain) WITH d MATCH (user:TestUser) WHERE id(d)=$domain_id AND id(user)=$test_user_id MERGE (d)-[:HAS_TEST_USER]->(user) RETURN user")
+	@Query("MATCH (d:Domain) MATCH (user:TestUser) WHERE id(d)=$domain_id AND id(user)=$test_user_id MERGE (d)-[:HAS_TEST_USER]->(user) RETURN user")
 	public void addTestUser(@Param("domain_id") long domain_id, @Param("test_user_id") long test_user_id);
 }

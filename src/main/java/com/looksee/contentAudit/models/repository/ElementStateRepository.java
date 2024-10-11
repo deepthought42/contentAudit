@@ -54,7 +54,7 @@ public interface ElementStateRepository extends Neo4jRepository<ElementState, Lo
 	@Query("MATCH (p:PageState{key:$page_state_key})-[*]->(parent_elem:ElementState) MATCH (parent_elem)-[:HAS_CHILD]->(e:ElementState{key:$element_state_key}) RETURN parent_elem LIMIT 1")
 	public ElementState getParentElement(@Param("page_state_key") String page_state_key, @Param("element_state_key") String element_state_key);
 
-	@Query("MATCH (parent:ElementState{key:$parent_key}) WITH parent MATCH (child:ElementState{key:$child_key}) MERGE (parent)-[:HAS_CHILD]->(child) RETURN parent")
+	@Query("MATCH (parent:ElementState{key:$parent_key}) MATCH (child:ElementState{key:$child_key}) MERGE (parent)-[:HAS_CHILD]->(child) RETURN parent")
 	public void addChildElement(@Param("parent_key") String parent_key, @Param("child_key") String child_key);
 
 	@Query("MATCH (p:PageState{key:$page_state_key})-[*]->(parent_elem:ElementState) MATCH (parent_elem)-[:HAS_CHILD]->(e:ElementState{key:$element_state_key}) RETURN parent_elem LIMIT 1")
@@ -69,7 +69,7 @@ public interface ElementStateRepository extends Neo4jRepository<ElementState, Lo
 	@Query("MATCH (e:ElementState) WHERE e.key IN $element_keys RETURN e")
 	public List<ElementState> getElements(@Param("element_keys")  Set<String> existing_keys);
 	
-	@Query("MATCH (p:PageState) WITH p WHERE id(p)=$page_state_id MATCH (p)-[:HAS]->(e:ElementState) where e.visible=true AND e.classification'LEAF' RETURN e")
+	@Query("MATCH (p:PageState) WHERE id(p)=$page_state_id MATCH (p)-[:HAS]->(e:ElementState) where e.visible=true AND e.classification'LEAF' RETURN e")
 	public List<ElementState> getVisibleLeafElements(@Param("page_state_id") long page_state_id);
 
 	@Query("MATCH (p:PageState{key:$page_key})-[:HAS]->(e:ElementState) RETURN DISTINCT e")
