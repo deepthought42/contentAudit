@@ -76,6 +76,18 @@ http://localhost:8080/swagger-ui.html
 
 This will provide detailed information about the available endpoints and how to use them.
 
+### PageAuditMessage Object Schema
+
+The `PageAuditMessage` object represents a message that is passed to the AuditController endpoint for processing page audits. It contains essential information about the audit request and is used to initiate and track individual page audits. The object has the following fields:
+
+- `pageAuditId` (String): The unique identifier for the page audit.
+- `pageId` (String): The identifier of the page being audited.
+- `messageId` (String): The unique identifier for the message.
+- `publishTime` (DateTime): The timestamp when the message was published.
+- `accountId` (String): The identifier of the account associated with the message.
+
+This object is used in various API endpoints related to page audits and messaging, particularly when submitting new audit requests to the AuditController.
+
 ## Security
 
 This application uses Auth0 for authentication. Ensure that you have properly configured the Auth0 properties in the GCP secrets.
@@ -83,3 +95,4 @@ This application uses Auth0 for authentication. Ensure that you have properly co
 ## Support
 
 For any issues or questions, please open an issue in the project repository.
+
