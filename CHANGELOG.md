@@ -1,3 +1,10 @@
+## [1.0.2](https://github.com/deepthought42/contentAudit/compare/v1.0.1...v1.0.2) (2025-04-28)
+
+
+### Bug Fixes
+
+* cleaned up properties file ([0536440](https://github.com/deepthought42/contentAudit/commit/0536440b36a60238668c35e93abb52de295809b5))
+
 ## [1.0.1](https://github.com/deepthought42/contentAudit/compare/v1.0.0...v1.0.1) (2025-04-28)
 
 
