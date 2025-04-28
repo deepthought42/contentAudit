@@ -1,6 +1,6 @@
 # Content Audit
 
-This project implements a content audit system using Spring Boot, with integration for Google Cloud Platform (GCP) and Auth0.
+This project implements a content audit system using Spring Boot, with integration for Google Cloud Platform (GCP).
 
 ## AuditController
 
@@ -17,13 +17,12 @@ It provides RESTful endpoints for interacting with the audit system, allowing us
 This project uses GCP Secret Manager for secure configuration management. The main configuration files are:
 
 - `application.properties`
-- `auth0.properties`
 
 ### Setting up GCP Secrets
 
 1. Create a GCP project if you haven't already.
 2. Enable the Secret Manager API for your project.
-3. Create secrets in Secret Manager for each property in `application.properties` and `auth0.properties`.
+3. Create secrets in Secret Manager for each property in `application.properties`.
 4. Update the `spring.cloud.gcp.secretmanager.secret-name-prefix` in your local `application.properties` to match your GCP project ID.
 
 ### GCP Project Credentials
@@ -90,7 +89,7 @@ This object is used in various API endpoints related to page audits and messagin
 
 ## Security
 
-This application uses Auth0 for authentication. Ensure that you have properly configured the Auth0 properties in the GCP secrets.
+Authentication is not currently implemented in this application. Features such as OAuth, SAML, or other authentication mechanisms will need to be added to secure the system. Please be sure to implement appropriate authentication and authorization before deploying to production.
 
 ## Support
 
