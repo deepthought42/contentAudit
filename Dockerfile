@@ -20,7 +20,7 @@ FROM adoptopenjdk/openjdk14
 #FROM eclipse-temurin:17-jre
 
 # Copy the built JAR file from the previous stage
-COPY --from=build /app/target/*.jar app.JAR
+COPY --from=build /app/target/*.jar app.jar
 
 EXPOSE 443
 EXPOSE 80
