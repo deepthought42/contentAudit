@@ -22,6 +22,6 @@ FROM adoptopenjdk/openjdk14
 # Copy the built JAR file from the previous stage
 COPY --from=build /app/target/*.jar app.jar
 
-EXPOSE 443
+EXPOSE 8080
 EXPOSE 80
 ENTRYPOINT ["java","-Djava.security.egd=file:/dev/./urandom", "-Xms256M", "-ea","-jar", "app.jar"]
