@@ -23,7 +23,7 @@ jobs:
         uses: actions/setup-java@v3
         with:
           distribution: 'adopt'
-          java-version: '17'
+          java-version: '21'
 
       - name: Test with Maven
         run: mvn test
@@ -101,7 +101,7 @@ jobs:
         uses: actions/setup-java@v3
         with:
           distribution: 'adopt'
-          java-version: '17'
+          java-version: '21'
       
       - name: Test with Maven
         run: mvn install -DskipTests
