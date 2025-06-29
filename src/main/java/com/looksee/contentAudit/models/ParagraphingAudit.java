@@ -1,7 +1,5 @@
 package com.looksee.contentAudit.models;
 
-import java.net.MalformedURLException;
-import java.net.URISyntaxException;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
@@ -12,18 +10,34 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
 import com.google.cloud.language.v1.Sentence;
-import com.looksee.contentAudit.gcp.CloudNLPUtils;
-import com.looksee.contentAudit.models.enums.AuditCategory;
-import com.looksee.contentAudit.models.enums.AuditLevel;
-import com.looksee.contentAudit.models.enums.AuditName;
-import com.looksee.contentAudit.models.enums.AuditSubcategory;
-import com.looksee.contentAudit.models.enums.Priority;
-import com.looksee.contentAudit.services.AuditService;
-import com.looksee.contentAudit.services.UXIssueMessageService;
+import com.looksee.gcp.CloudNLPUtils;
+import com.looksee.models.Audit;
+import com.looksee.models.AuditRecord;
+import com.looksee.models.DesignSystem;
+import com.looksee.models.ElementState;
+import com.looksee.models.IExecutablePageStateAudit;
+import com.looksee.models.PageState;
+import com.looksee.models.Score;
+import com.looksee.models.SentenceIssueMessage;
+import com.looksee.models.UXIssueMessage;
+import com.looksee.models.enums.AuditCategory;
+import com.looksee.models.enums.AuditLevel;
+import com.looksee.models.enums.AuditName;
+import com.looksee.models.enums.AuditSubcategory;
+import com.looksee.models.enums.Priority;
+import com.looksee.services.AuditService;
+import com.looksee.services.UXIssueMessageService;
 import com.looksee.utils.BrowserUtils;
 
 /**
- * Responsible for executing an audit on the hyperlinks on a page for the information architecture audit category
+ * Responsible for executing an audit on the hyperlinks on a page for the
+ * information architecture audit category.
+ *
+ * <p>This audit evaluates the paragraphing of text content on a web page to
+ * ensure it meets readability standards. It checks for proper sentence length
+ * and spacing between paragraphs to enhance user experience.</p>
+ *
+ * <p>The audit supports WCAG Level A compliance by ensuring that text content
  */
 @Component
 public class ParagraphingAudit implements IExecutablePageStateAudit {
@@ -43,22 +57,59 @@ public class ParagraphingAudit implements IExecutablePageStateAudit {
 	
 	/**
 	 * {@inheritDoc}
+	 *
+	 * Executes a paragraphing audit on a web page to assess sentence length compliance with EU and US governmental standards.
 	 * 
-	 * Scores links on a page based on if the link has an href value present, the url format is valid and the 
-	 *   url goes to a location that doesn't produce a 4xx error 
-	 *   
-	 * @throws MalformedURLException 
-	 * @throws URISyntaxException 
+	 * <p><strong>Preconditions:</strong></p>
+	 * <ul>
+	 *   <li>{@code page_state} must not be null</li>
+	 *   <li>{@code page_state.getElements()} must contain valid ElementState objects</li>
+	 *   <li>{@code audit_record} must be a valid audit record for tracking</li>
+	 *   <li>{@code design_system} must be provided (though unused in this implementation)</li>
+	 * </ul>
+	 * 
+	 * <p><strong>Process:</strong></p>
+	 * <ul>
+	 *   <li>Retrieves all text elements from the page using BrowserUtils.getTextElements()</li>
+	 *   <li>For each text element, extracts owned text content and splits into paragraphs by newline characters</li>
+	 *   <li>Filters out paragraphs with fewer than 3 words</li>
+	 *   <li>Adds periods to paragraphs that don't contain sentence-ending punctuation</li>
+	 *   <li>Uses Google Cloud NLP (CloudNLPUtils.extractSentences()) to parse paragraphs into individual sentences</li>
+	 *   <li>Evaluates each sentence against the 25-word maximum length standard used in EU and US governmental documentation</li>
+	 *   <li>Creates SentenceIssueMessage objects for sentences that exceed the limit or meet the standard</li>
+	 *   <li>Calculates overall score based on points earned vs maximum possible points</li>
+	 * </ul>
+	 * 
+	 * <p><strong>Postconditions:</strong></p>
+	 * <ul>
+	 *   <li>Returns a non-null Audit object with CONTENT category, WRITTEN_CONTENT subcategory, and PARAGRAPHING audit name</li>
+	 *   <li>The audit contains calculated points earned and maximum points based on sentence length compliance</li>
+	 *   <li>All SentenceIssueMessage objects are persisted to the database via UXIssueMessageService</li>
+	 *   <li>The audit is saved to the database via AuditService</li>
+	 *   <li>All issue messages are associated with the audit record</li>
+	 * </ul>
+	 * 
+	 * <p><strong>Scoring:</strong></p>
+	 * <ul>
+	 *   <li>Sentences with 25 words or fewer: 1 point earned, 1 point maximum</li>
+	 *   <li>Sentences with more than 25 words: 0 points earned, 1 point maximum</li>
+	 *   <li>Overall score is the sum of all sentence scores across all text elements</li>
+	 * </ul>
+	 * 
+	 * @param page_state The page state containing elements to audit, must not be null
+	 * @param audit_record The audit record for tracking this audit execution
+	 * @param design_system The design system context (unused in this implementation)
+	 * @return A completed Audit object with paragraphing compliance results
+	 * @throws RuntimeException if CloudNLPUtils.extractSentences() fails for any paragraph
 	 */
 	@Override
-	public Audit execute(PageState page_state, AuditRecord audit_record, DesignSystem design_system) {
+	public Audit execute(PageState page_state,
+						AuditRecord audit_record,
+						DesignSystem design_system) {
 		assert page_state != null;
 
 		Set<UXIssueMessage> issue_messages = new HashSet<>();
 		
-		//get all elements that are text containers
-		//List<ElementState> elements = page_state_service.getElementStates(page_state.getId());
-		//filter elements that aren't text elements
 		List<ElementState> element_list = BrowserUtils.getTextElements(page_state.getElements());
 		
 		for(ElementState element : element_list) {
@@ -77,7 +128,7 @@ public class ParagraphingAudit implements IExecutablePageStateAudit {
 					List<Sentence> sentences = CloudNLPUtils.extractSentences(paragraph);
 					Score score = calculateSentenceScore(sentences, element);
 
-					issue_messages.addAll(score.getIssueMessages());	
+					issue_messages.addAll(score.getIssueMessages());
 				} catch (Exception e) {
 					log.warn("error getting sentences from text :: "+paragraph);
 					//e.printStackTrace();
@@ -117,17 +168,17 @@ public class ParagraphingAudit implements IExecutablePageStateAudit {
 		String description = "";
 
 		Audit audit = new Audit(AuditCategory.CONTENT,
-						 AuditSubcategory.WRITTEN_CONTENT, 
-						 AuditName.PARAGRAPHING, 
-						 points_earned, 
-						 null, 
-						 AuditLevel.PAGE, 
-						 max_points, 
-						 page_state.getUrl(),
-						 why_it_matters, 
-						 description,
-						 false); 
-						 
+							AuditSubcategory.WRITTEN_CONTENT,
+							AuditName.PARAGRAPHING,
+							points_earned,
+							null,
+							AuditLevel.PAGE,
+							max_points,
+							page_state.getUrl(),
+							why_it_matters,
+							description,
+							false);
+
 		audit = audit_service.save(audit);
 		audit_service.addAllIssues(audit.getId(), issue_messages);
 		return audit;
@@ -207,7 +258,7 @@ public class ParagraphingAudit implements IExecutablePageStateAudit {
 				issue_messages.add(issue_message);
 			}
 		}
-		return new Score(points_earned, max_points, issue_messages);					
+		return new Score(points_earned, max_points, issue_messages);
 	}
 
 

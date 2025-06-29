@@ -1,7 +1,5 @@
 package com.looksee.contentAudit.models;
 
-import java.net.MalformedURLException;
-import java.net.URISyntaxException;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
@@ -11,18 +9,31 @@ import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
-import com.looksee.contentAudit.models.enums.AuditCategory;
-import com.looksee.contentAudit.models.enums.AuditLevel;
-import com.looksee.contentAudit.models.enums.AuditName;
-import com.looksee.contentAudit.models.enums.AuditSubcategory;
-import com.looksee.contentAudit.models.enums.Priority;
-import com.looksee.contentAudit.services.AuditService;
-import com.looksee.contentAudit.services.PageStateService;
-import com.looksee.contentAudit.services.UXIssueMessageService;
+import com.looksee.models.Audit;
+import com.looksee.models.AuditRecord;
+import com.looksee.models.DesignSystem;
+import com.looksee.models.ElementState;
+import com.looksee.models.ElementStateIssueMessage;
+import com.looksee.models.IExecutablePageStateAudit;
+import com.looksee.models.ImageElementState;
+import com.looksee.models.PageState;
+import com.looksee.models.ReadingComplexityIssueMessage;
+import com.looksee.models.Score;
+import com.looksee.models.UXIssueMessage;
+import com.looksee.models.enums.AuditCategory;
+import com.looksee.models.enums.AuditLevel;
+import com.looksee.models.enums.AuditName;
+import com.looksee.models.enums.AuditSubcategory;
+import com.looksee.models.enums.Priority;
+import com.looksee.services.AuditService;
+import com.looksee.services.PageStateService;
+import com.looksee.services.UXIssueMessageService;
 import com.looksee.utils.BrowserUtils;
 
 /**
- * Responsible for executing an audit on the hyperlinks on a page for the information architecture audit category
+ * Responsible for executing an audit on images on a page to determine
+ * compliance with content policy restrictions for adult content and violence
+ * based on the design system's allowed image characteristics.
  */
 @Component
 public class ImagePolicyAudit implements IExecutablePageStateAudit {
@@ -45,10 +56,55 @@ public class ImagePolicyAudit implements IExecutablePageStateAudit {
 	/**
 	 * {@inheritDoc}
 	 * 
-	 * Scores links on a page based on if the link has an href value present, the url format is valid and the 
-	 *   url goes to a location that doesn't produce a 4xx error 
-	 * @throws MalformedURLException 
-	 * @throws URISyntaxException 
+	 * Executes a content policy audit on images to ensure compliance with design system
+	 * restrictions for adult content and violence.
+	 * 
+	 * <p><strong>Preconditions:</strong></p>
+	 * <ul>
+	 *   <li>{@code page_state} must not be null</li>
+	 *   <li>{@code page_state.getElements()} must return a valid collection of ElementState objects</li>
+	 *   <li>{@code design_system} must not be null and must have valid allowed image characteristics</li>
+	 *   <li>{@code audit_service} and {@code issue_message_service} must be properly injected</li>
+	 *   <li>{@code BrowserUtils.getTextElements()} must return a list of elements that may contain ImageElementState objects</li>
+	 * </ul>
+	 * 
+	 * <p><strong>Postconditions:</strong></p>
+	 * <ul>
+	 *   <li>Returns a non-null Audit object with category CONTENT, subcategory IMAGERY, and name IMAGE_POLICY</li>
+	 *   <li>All image elements from the page state have been evaluated for policy compliance</li>
+	 *   <li>Issue messages have been created and saved for each image element (compliance or violation)</li>
+	 *   <li>The returned audit contains the total score calculated from all image elements</li>
+	 *   <li>All issue messages are associated with the returned audit</li>
+	 *   <li>Each image element has been checked against the design system's allowed image characteristics</li>
+	 * </ul>
+	 * 
+	 * <p><strong>Invariants:</strong></p>
+	 * <ul>
+	 *   <li>Points earned cannot exceed max points possible</li>
+	 *   <li>Each image element generates exactly one issue message</li>
+	 *   <li>All issue messages have appropriate priority levels (MEDIUM for violations, NONE for compliance)</li>
+	 *   <li>Issue messages contain proper labels: "imagery" and "policy"</li>
+	 *   <li>Violation issues have 0 points earned, compliance issues have 1 point earned</li>
+	 *   <li>Each image element contributes exactly 1 point to the maximum possible score</li>
+	 * </ul>
+	 * 
+	 * <p><strong>Behavior:</strong></p>
+	 * <ul>
+	 *   <li>Filters page elements to find only image elements using {@code BrowserUtils.getTextElements()}</li>
+	 *   <li>For each image element, checks {@code isAdultContent()} and {@code isViolentContent()} properties</li>
+	 *   <li>Compares image characteristics against {@code design_system.getAllowedImageCharacteristics()}</li>
+	 *   <li>Creates violation issues for images with adult content when "ADULT" is not in allowed characteristics</li>
+	 *   <li>Creates violation issues for images with violent content when "VIOLENCE" is not in allowed characteristics</li>
+	 *   <li>Creates compliance issues for images that meet policy requirements</li>
+	 *   <li>Calculates overall policy compliance score based on compliance rate</li>
+	 *   <li>Persists all audit data and issue messages to the database</li>
+	 *   <li>Returns a completed Audit object with policy compliance results</li>
+	 * </ul>
+	 * 
+	 * @param page_state The page state containing elements to audit, must not be null
+	 * @param audit_record The audit record for tracking this audit execution
+	 * @param design_system The design system containing allowed image characteristics, must not be null
+	 * @return A completed Audit object with content policy compliance results for image elements
 	 */
 	@Override
 	public Audit execute(PageState page_state, AuditRecord audit_record, DesignSystem design_system) {
@@ -65,16 +121,16 @@ public class ImagePolicyAudit implements IExecutablePageStateAudit {
 		Score image_policy_score = calculateImagePolicyViolationScore(element_list, design_system);
 		
 		Audit audit = new Audit(AuditCategory.CONTENT,
-								 AuditSubcategory.IMAGERY, 
-								 AuditName.IMAGE_POLICY, 
-								 image_policy_score.getPointsAchieved(), 
-								 null, 
-								 AuditLevel.PAGE, 
-								 image_policy_score.getMaxPossiblePoints(), 
-								 page_state.getUrl(),
-								 why_it_matters, 
-								 description,
-								 false); 
+								AuditSubcategory.IMAGERY,
+								AuditName.IMAGE_POLICY,
+								image_policy_score.getPointsAchieved(),
+								null,
+								AuditLevel.PAGE,
+								image_policy_score.getMaxPossiblePoints(),
+								page_state.getUrl(),
+								why_it_matters,
+								description,
+								false);
 		
 		audit = audit_service.save(audit);
 		audit_service.addAllIssues(audit.getId(), image_policy_score.getIssueMessages());
@@ -83,13 +139,52 @@ public class ImagePolicyAudit implements IExecutablePageStateAudit {
 
 
 	/**
-	 * Calculates score of images based on the image policies in place
+	 * Calculates policy compliance score for images based on content restrictions for
+	 * adult content and violence defined in the design system.
+	 *
+	 * <p><strong>Preconditions:</strong></p>
+	 * <ul>
+	 *   <li>{@code element_list} must not be null</li>
+	 *   <li>{@code design_system} must not be null</li>
+	 *   <li>{@code design_system.getAllowedImageCharacteristics()} must return a valid collection</li>
+	 *   <li>{@code issue_message_service} must be properly injected</li>
+	 * </ul>
 	 * 
-	 * @param element_list
-	 * @param design_system
-	 * @return
+	 * <p><strong>Postconditions:</strong></p>
+	 * <ul>
+	 *   <li>Returns a non-null Score object with calculated points and issue messages</li>
+	 *   <li>All ImageElementState objects in the element list have been evaluated</li>
+	 *   <li>Issue messages have been created and saved for each image element</li>
+	 *   <li>Score points reflect compliance with design system image policies</li>
+	 * </ul>
+	 * 
+	 * <p><strong>Invariants:</strong></p>
+	 * <ul>
+	 *   <li>Points earned cannot exceed max points possible</li>
+	 *   <li>Each image element contributes exactly 1 point to max points</li>
+	 *   <li>Compliant images earn 1 point, non-compliant images earn 0 points</li>
+	 *   <li>All issue messages have appropriate priority levels (MEDIUM for violations, NONE for compliance)</li>
+	 *   <li>Issue messages contain labels: "imagery" and "policy"</li>
+	 * </ul>
+	 * 
+	 * <p><strong>Behavior:</strong></p>
+	 * <ul>
+	 *   <li>Iterates through all ElementState objects in the element list</li>
+	 *   <li>Filters for ImageElementState objects only</li>
+	 *   <li>For each image, checks isAdultContent() and isViolentContent() properties</li>
+	 *   <li>Compares against design system's allowed image characteristics</li>
+	 *   <li>Creates violation issues for adult content when "ADULT" not in allowed characteristics</li>
+	 *   <li>Creates violation issues for violent content when "VIOLENCE" not in allowed characteristics</li>
+	 *   <li>Creates compliance issues for images meeting policy requirements</li>
+	 *   <li>Calculates total points earned and maximum possible points</li>
+	 * </ul>
+	 *
+	 * @param element_list - list of element states to evaluate, must not be null
+	 * @param design_system - design system containing image policy restrictions, must not be null
+	 * @return Score object containing points earned, max points, and issue messages for image policy compliance
 	 */
-	private Score calculateImagePolicyViolationScore(List<ElementState> element_list, DesignSystem design_system) {
+	private Score calculateImagePolicyViolationScore(List<ElementState> element_list,
+													DesignSystem design_system) {
 		int points_earned = 0;
 		int max_points = 0;
 		Set<UXIssueMessage> issue_messages = new HashSet<>();
@@ -164,9 +259,9 @@ public class ImagePolicyAudit implements IExecutablePageStateAudit {
 					String description = "This image complies with the domain policy. Well done!";
 					
 					ElementStateIssueMessage issue_message = new ElementStateIssueMessage(
-																	Priority.NONE, 
-																	description, 
-																	recommendation, 
+																	Priority.NONE,
+																	description,
+																	recommendation,
 																	element,
 																	AuditCategory.CONTENT,
 																	labels,
@@ -181,6 +276,7 @@ public class ImagePolicyAudit implements IExecutablePageStateAudit {
 				}
 			}
 		}
-		return new Score(points_earned, max_points, issue_messages);	
+		
+		return new Score(points_earned, max_points, issue_messages);
 	}
 }

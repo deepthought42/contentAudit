@@ -36,28 +36,28 @@ import com.fasterxml.jackson.databind.JsonMappingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.json.JsonMapper;
 import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule;
-import com.looksee.contentAudit.gcp.PubSubAuditUpdatePublisherImpl;
-import com.looksee.contentAudit.mapper.Body;
 import com.looksee.contentAudit.models.AppletAltTextAudit;
-import com.looksee.contentAudit.models.Audit;
-import com.looksee.contentAudit.models.AuditRecord;
 import com.looksee.contentAudit.models.CanvasAltTextAudit;
 import com.looksee.contentAudit.models.IframeAltTextAudit;
 import com.looksee.contentAudit.models.ImageAltTextAudit;
 import com.looksee.contentAudit.models.ImageAudit;
 import com.looksee.contentAudit.models.ImagePolicyAudit;
 import com.looksee.contentAudit.models.ObjectAltTextAudit;
-import com.looksee.contentAudit.models.PageState;
 import com.looksee.contentAudit.models.ParagraphingAudit;
 import com.looksee.contentAudit.models.ReadabilityAudit;
 import com.looksee.contentAudit.models.SVGAltTextAudit;
-import com.looksee.contentAudit.models.enums.AuditCategory;
-import com.looksee.contentAudit.models.enums.AuditLevel;
-import com.looksee.contentAudit.models.enums.AuditName;
-import com.looksee.contentAudit.models.message.AuditProgressUpdate;
-import com.looksee.contentAudit.models.message.PageAuditMessage;
-import com.looksee.contentAudit.services.AuditRecordService;
-import com.looksee.contentAudit.services.PageStateService;
+import com.looksee.gcp.PubSubAuditUpdatePublisherImpl;
+import com.looksee.mapper.Body;
+import com.looksee.models.Audit;
+import com.looksee.models.AuditRecord;
+import com.looksee.models.PageState;
+import com.looksee.models.enums.AuditCategory;
+import com.looksee.models.enums.AuditLevel;
+import com.looksee.models.enums.AuditName;
+import com.looksee.models.message.AuditProgressUpdate;
+import com.looksee.models.message.PageAuditMessage;
+import com.looksee.services.AuditRecordService;
+import com.looksee.services.PageStateService;
 
 /**
  * API controller that performs a content audit.
@@ -105,25 +105,35 @@ public class AuditController {
 	@Autowired
 	private PubSubAuditUpdatePublisherImpl audit_update_topic;
 	
+	/**
+	 * Receives a message from Pub/Sub and performs a content audit on the page.
+	 *
+	 * @param body the body of the message containing the audit record and page state
+	 * @return ResponseEntity containing the result of the audit
+	 * @throws JsonMappingException if there is an error mapping the JSON data
+	 * @throws JsonProcessingException if there is an error processing the JSON data
+	 * @throws ExecutionException if the execution of the audit fails
+	 * @throws InterruptedException if the thread is interrupted while waiting for the audit to complete
+	 */
 	@RequestMapping(value = "/", method = RequestMethod.POST)
-	public ResponseEntity<String> receiveMessage(@RequestBody Body body) 
-		throws JsonMappingException, JsonProcessingException, ExecutionException, InterruptedException 
+	public ResponseEntity<String> receiveMessage(@RequestBody Body body)
+		throws JsonMappingException, JsonProcessingException, ExecutionException, InterruptedException
 	{
 		Body.Message message = body.getMessage();
 		String data = message.getData();
 		String target = !data.isEmpty() ? new String(Base64.getDecoder().decode(data)) : "";
         log.warn("page audit msg received = "+target);
 
-	    ObjectMapper input_mapper = new ObjectMapper();
-	    PageAuditMessage audit_record_msg = input_mapper.readValue(target, PageAuditMessage.class);
-	    
-	    try {
-	    	AuditRecord audit_record = audit_record_service.findById(audit_record_msg.getPageAuditId()).get();
+		ObjectMapper input_mapper = new ObjectMapper();
+		PageAuditMessage audit_record_msg = input_mapper.readValue(target, PageAuditMessage.class);
+		
+		try {
+			AuditRecord audit_record = audit_record_service.findById(audit_record_msg.getPageAuditId()).get();
 			//PageState page = page_state_service.findById(audit_record_msg.getPageId()).get();
 			PageState page = page_state_service.findByAuditRecordId(audit_record_msg.getPageAuditId());
 			page.setElements(page_state_service.getElementStates(page.getId()));
 			log.warn("evaluating "+page.getElements().size()+" element state for content audit with page ID :: "+page.getId());
-	    	Set<Audit> audits = audit_record_service.getAllAudits(audit_record.getId());
+			Set<Audit> audits = audit_record_service.getAllAudits(audit_record.getId());
 
 			if(!auditAlreadyExists(audits, AuditName.ALT_TEXT)) {
 				Audit img_alt_text_audit = image_alt_text_auditor.execute(page, audit_record, null);

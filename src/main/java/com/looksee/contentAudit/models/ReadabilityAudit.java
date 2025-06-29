@@ -1,7 +1,5 @@
 package com.looksee.contentAudit.models;
 
-import java.net.MalformedURLException;
-import java.net.URISyntaxException;
 import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.List;
@@ -12,24 +10,54 @@ import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
-import com.looksee.contentAudit.models.enums.AuditCategory;
-import com.looksee.contentAudit.models.enums.AuditLevel;
-import com.looksee.contentAudit.models.enums.AuditName;
-import com.looksee.contentAudit.models.enums.AuditSubcategory;
-import com.looksee.contentAudit.models.enums.Priority;
-import com.looksee.contentAudit.services.AuditService;
-import com.looksee.contentAudit.services.UXIssueMessageService;
+import com.looksee.models.Audit;
+import com.looksee.models.AuditRecord;
+import com.looksee.models.DesignSystem;
+import com.looksee.models.ElementState;
+import com.looksee.models.IExecutablePageStateAudit;
+import com.looksee.models.PageState;
+import com.looksee.models.ReadingComplexityIssueMessage;
+import com.looksee.models.Score;
+import com.looksee.models.UXIssueMessage;
+import com.looksee.models.enums.AuditCategory;
+import com.looksee.models.enums.AuditLevel;
+import com.looksee.models.enums.AuditName;
+import com.looksee.models.enums.AuditSubcategory;
+import com.looksee.models.enums.Priority;
+import com.looksee.services.AuditService;
+import com.looksee.services.UXIssueMessageService;
 import com.looksee.utils.ContentUtils;
 
 import io.whelk.flesch.kincaid.ReadabilityCalculator;
+import lombok.NoArgsConstructor;
 
 /**
- * Responsible for executing an audit on the hyperlinks on a page for the information architecture audit category
+ * Responsible for executing a readability audit on web page text content to assess reading complexity
+ * and ensure compliance with WCAG AAA accessibility standards.
+ *
+ * <p>This audit evaluates the readability of text content on a web page using the Flesch Reading Ease
+ * formula to determine if content is appropriate for the target audience's education level. It filters
+ * out non-meaningful text elements (buttons, links, very short text) and analyzes remaining text
+ * content for reading difficulty.</p>
+ *
+ * <p>The audit supports WCAG Level AAA compliance by ensuring that text content doesn't require
+ * reading ability beyond the lower secondary education level (grades 5-8). It provides detailed
+ * feedback on text complexity and recommendations for improving readability.</p>
+ *
+ * <p>Key features:</p>
+ * <ul>
+ *   <li>Uses Flesch Reading Ease scoring (0-100 scale) to assess text complexity</li>
+ *   <li>Considers target user education level when assigning scores</li>
+ *   <li>Filters out duplicate and non-meaningful text content</li>
+ *   <li>Provides specific recommendations for improving readability</li>
+ *   <li>Generates detailed issue messages for both problematic and compliant text</li>
+ * </ul>
  *
  * WCAG Level - AAA
  * WCAG Success Criterion - https://www.w3.org/TR/UNDERSTANDING-WCAG20/meaning-supplements.html
  */
 @Component
+@NoArgsConstructor
 public class ReadabilityAudit implements IExecutablePageStateAudit {
 	@SuppressWarnings("unused")
 	private static Logger log = LoggerFactory.getLogger(ReadabilityAudit.class);
@@ -40,15 +68,68 @@ public class ReadabilityAudit implements IExecutablePageStateAudit {
 	@Autowired
 	private UXIssueMessageService issue_message_service;
 	
-	public ReadabilityAudit() {} 
-
-	
 	/**
 	 * {@inheritDoc}
+	 *
+	 * Executes a readability audit on a web page to assess text complexity and compliance with WCAG AAA standards.
 	 * 
-	 * Scores readability and relevance of content on a page based on the reading level of the content and the keywords used
-	 * @throws MalformedURLException 
-	 * @throws URISyntaxException 
+	 * <p><strong>Preconditions:</strong></p>
+	 * <ul>
+	 *   <li>{@code page_state} must not be null</li>
+	 *   <li>{@code page_state.getElements()} must contain valid ElementState objects</li>
+	 *   <li>{@code audit_record} must be a valid audit record for tracking</li>
+	 *   <li>{@code design_system} must be provided (though unused in this implementation)</li>
+	 *   <li>{@code audit_service} and {@code issue_message_service} must be properly injected</li>
+	 * </ul>
+	 * 
+	 * <p><strong>Process:</strong></p>
+	 * <ul>
+	 *   <li>Filters page elements to identify meaningful text content by excluding buttons, links, empty text, and text with 3 or fewer words</li>
+	 *   <li>Removes duplicate text content by identifying elements whose text is contained within other elements</li>
+	 *   <li>For each qualifying text element, calculates Flesch Reading Ease score using ReadabilityCalculator.calculateReadingEase()</li>
+	 *   <li>Determines reading difficulty rating and grade level using ContentUtils helper methods</li>
+	 *   <li>Assigns points based on reading ease score and target user education level using getPointsForEducationLevel()</li>
+	 *   <li>Boosts points to maximum (4) for text elements with fewer than 10 words</li>
+	 *   <li>Creates ReadingComplexityIssueMessage objects for both problematic and compliant text elements</li>
+	 *   <li>Calculates overall score based on points earned vs maximum possible points (4 points per text element)</li>
+	 * </ul>
+	 * 
+	 * <p><strong>Postconditions:</strong></p>
+	 * <ul>
+	 *   <li>Returns a non-null Audit object with CONTENT category, WRITTEN_CONTENT subcategory, and READING_COMPLEXITY audit name</li>
+	 *   <li>The audit contains calculated points earned and maximum points based on readability compliance</li>
+	 *   <li>All ReadingComplexityIssueMessage objects are persisted to the database via UXIssueMessageService</li>
+	 *   <li>The audit is saved to the database via AuditService</li>
+	 *   <li>All issue messages are associated with their respective text elements</li>
+	 *   <li>Issue messages contain appropriate priority levels (LOW for problematic text, NONE for compliant text)</li>
+	 * </ul>
+	 * 
+	 * <p><strong>Scoring System:</strong></p>
+	 * <ul>
+	 *   <li>Each text element contributes up to 4 points maximum</li>
+	 *   <li>Text with fewer than 10 words automatically receives 4 points</li>
+	 *   <li>Points are assigned based on Flesch Reading Ease score ranges and target user education level</li>
+	 *   <li>Reading ease scores 90+: 3-4 points depending on education level</li>
+	 *   <li>Reading ease scores 80-89: 4 points for most education levels</li>
+	 *   <li>Reading ease scores 70-79: 3-4 points depending on education level</li>
+	 *   <li>Reading ease scores 60-69: 2-4 points depending on education level</li>
+	 *   <li>Reading ease scores 50-59: 1-4 points depending on education level</li>
+	 *   <li>Reading ease scores 30-49: 0-3 points depending on education level</li>
+	 *   <li>Reading ease scores below 30: 0-2 points depending on education level</li>
+	 * </ul>
+	 * 
+	 * <p><strong>WCAG Compliance:</strong></p>
+	 * <ul>
+	 *   <li>Supports WCAG Level AAA compliance</li>
+	 *   <li>Addresses WCAG Success Criterion for reading level requirements</li>
+	 *   <li>Ensures text content doesn't require reading ability beyond lower secondary education level</li>
+	 * </ul>
+	 * 
+	 * @param page_state The page state containing elements to audit, must not be null
+	 * @param audit_record The audit record for tracking this audit execution
+	 * @param design_system The design system context (unused in this implementation)
+	 * @return A completed Audit object with readability compliance results
+	 * @throws RuntimeException if ReadabilityCalculator.calculateReadingEase() fails for any text element
 	 */
 	@Override
 	public Audit execute(PageState page_state, AuditRecord audit_record, DesignSystem design_system) {
@@ -71,9 +152,9 @@ public class ReadabilityAudit implements IExecutablePageStateAudit {
 
 		try{
 			for(ElementState element: page_state.getElements()) {
-				if(element.getName().contentEquals("button") 
-						|| element.getName().contentEquals("a") 
-						|| (element.getOwnedText() == null || element.getOwnedText().isEmpty()) 
+				if(element.getName().contentEquals("button")
+						|| element.getName().contentEquals("a")
+						|| (element.getOwnedText() == null || element.getOwnedText().isEmpty())
 						|| element.getAllText().split(" ").length <= 3
 				) {
 					continue;
@@ -83,8 +164,8 @@ public class ReadabilityAudit implements IExecutablePageStateAudit {
 					if(element2.getKey().contentEquals(element.getKey())) {
 						continue;
 					}
-					if(!element2.getOwnedText().isEmpty() 
-							&& element2.getAllText().contains(element.getAllText()) 
+					if(!element2.getOwnedText().isEmpty()
+							&& element2.getAllText().contains(element.getAllText())
 							&& !element2.getAllText().contentEquals(element.getAllText())
 					) {
 						is_child_text = true;
@@ -179,9 +260,9 @@ public class ReadabilityAudit implements IExecutablePageStateAudit {
 
 			String why_it_matters = "For people with reading disabilities(including the most highly educated), it is important"
 					+ "to accomodate these users by providing text that is simpler to read."
-					+ "Beyond accessibility, the way users experience content online has changed." + 
-					" Attention spans are shorter, and users skim through most information." + 
-					" Presenting information in small, easy to digest chunks makes their" + 
+					+ "Beyond accessibility, the way users experience content online has changed." +
+					" Attention spans are shorter, and users skim through most information." +
+					" Presenting information in small, easy to digest chunks makes their" +
 					" experience easy and convenient.";
 			
 			int points_earned = 0;
@@ -198,11 +279,11 @@ public class ReadabilityAudit implements IExecutablePageStateAudit {
 									points_earned,
 									issue_messages,
 									AuditLevel.PAGE,
-									max_points, 
+									max_points,
 									page_state.getUrl(),
-									why_it_matters, 
+									why_it_matters,
 									description,
-									false); 
+									false);
 			
 			return audit_service.save(audit);
 		}
@@ -213,9 +294,9 @@ public class ReadabilityAudit implements IExecutablePageStateAudit {
 	}
 
 
-	private String generateIssueDescription(ElementState element, 
+	private String generateIssueDescription(ElementState element,
 											String difficulty_string,
-											double ease_of_reading_score, 
+											double ease_of_reading_score,
 											String targetUserEducation) {
 		String description = "The text \"" + element.getAllText() + "\" is " + difficulty_string + " to read for "+getConsumerType(targetUserEducation);
 		
@@ -241,13 +322,13 @@ public class ReadabilityAudit implements IExecutablePageStateAudit {
 			if(target_user_education == null) {
 				element_points = 4;
 			}
-			else if("HS".contentEquals(target_user_education)) {				
+			else if("HS".contentEquals(target_user_education)) {
 				element_points = 4;
 			}
-			else if("College".contentEquals(target_user_education)) {				
+			else if("College".contentEquals(target_user_education)) {
 				element_points = 4;
 			}
-			else if("Advanced".contentEquals(target_user_education)) {				
+			else if("Advanced".contentEquals(target_user_education)) {
 				element_points = 3;
 			}
 			else {
@@ -258,13 +339,13 @@ public class ReadabilityAudit implements IExecutablePageStateAudit {
 			if(target_user_education == null) {
 				element_points = 4;
 			}
-			else if("HS".contentEquals(target_user_education)) {				
+			else if("HS".contentEquals(target_user_education)) {
 				element_points = 4;
 			}
-			else if("College".contentEquals(target_user_education)) {				
+			else if("College".contentEquals(target_user_education)) {
 				element_points = 4;
 			}
-			else if("Advanced".contentEquals(target_user_education)) {				
+			else if("Advanced".contentEquals(target_user_education)) {
 				element_points = 4;
 			}
 			else {
@@ -275,13 +356,13 @@ public class ReadabilityAudit implements IExecutablePageStateAudit {
 			if(target_user_education == null) {
 				element_points = 4;
 			}
-			else if("HS".contentEquals(target_user_education)) {				
+			else if("HS".contentEquals(target_user_education)) {
 				element_points = 4;
 			}
-			else if("College".contentEquals(target_user_education)) {				
+			else if("College".contentEquals(target_user_education)) {
 				element_points = 4;
 			}
-			else if("Advanced".contentEquals(target_user_education)) {				
+			else if("Advanced".contentEquals(target_user_education)) {
 				element_points = 4;
 			}
 			else {
@@ -292,13 +373,13 @@ public class ReadabilityAudit implements IExecutablePageStateAudit {
 			if(target_user_education == null) {
 				element_points = 3;
 			}
-			else if("HS".contentEquals(target_user_education)) {				
+			else if("HS".contentEquals(target_user_education)) {
 				element_points = 3;
 			}
-			else if("College".contentEquals(target_user_education)) {				
+			else if("College".contentEquals(target_user_education)) {
 				element_points = 4;
 			}
-			else if("Advanced".contentEquals(target_user_education)) {				
+			else if("Advanced".contentEquals(target_user_education)) {
 				element_points = 4;
 			}
 			else {
@@ -309,13 +390,13 @@ public class ReadabilityAudit implements IExecutablePageStateAudit {
 			if(target_user_education == null) {
 				element_points = 2;
 			}
-			else if("HS".contentEquals(target_user_education)) {				
+			else if("HS".contentEquals(target_user_education)) {
 				element_points = 2;
 			}
-			else if("College".contentEquals(target_user_education)) {				
+			else if("College".contentEquals(target_user_education)) {
 				element_points = 3;
 			}
-			else if("Advanced".contentEquals(target_user_education)) {				
+			else if("Advanced".contentEquals(target_user_education)) {
 				element_points = 4;
 			}
 			else {
@@ -326,32 +407,32 @@ public class ReadabilityAudit implements IExecutablePageStateAudit {
 			if(target_user_education == null) {
 				element_points = 1;
 			}
-			else if("HS".contentEquals(target_user_education)) {				
+			else if("HS".contentEquals(target_user_education)) {
 				element_points = 1;
 			}
-			else if("College".contentEquals(target_user_education)) {				
+			else if("College".contentEquals(target_user_education)) {
 				element_points = 2;
 			}
-			else if("Advanced".contentEquals(target_user_education)) {				
+			else if("Advanced".contentEquals(target_user_education)) {
 				element_points = 3;
 			}
 			else {
 				element_points = 0;
-			}		
+			}
 		}
 		else if(ease_of_reading_score < 30) {
 			if(target_user_education == null) {
 				element_points = 0;
 			}
-			else if("College".contentEquals(target_user_education)) {				
+			else if("College".contentEquals(target_user_education)) {
 				element_points = 1;
 			}
-			else if("Advanced".contentEquals(target_user_education)) {				
+			else if("Advanced".contentEquals(target_user_education)) {
 				element_points = 2;
 			}
 			else {
 				element_points = 0;
-			}	
+			}
 			element_points = 0;
 		}
 		

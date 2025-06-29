@@ -1,7 +1,5 @@
 package com.looksee.contentAudit.models;
 
-import java.net.MalformedURLException;
-import java.net.URISyntaxException;
 import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.List;
@@ -15,18 +13,26 @@ import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
-import com.looksee.contentAudit.models.enums.AuditCategory;
-import com.looksee.contentAudit.models.enums.AuditLevel;
-import com.looksee.contentAudit.models.enums.AuditName;
-import com.looksee.contentAudit.models.enums.AuditSubcategory;
-import com.looksee.contentAudit.models.enums.Priority;
-import com.looksee.contentAudit.services.AuditService;
-import com.looksee.contentAudit.services.UXIssueMessageService;
+import com.looksee.models.Audit;
+import com.looksee.models.AuditRecord;
+import com.looksee.models.DesignSystem;
+import com.looksee.models.ElementState;
+import com.looksee.models.ElementStateIssueMessage;
+import com.looksee.models.IExecutablePageStateAudit;
+import com.looksee.models.PageState;
+import com.looksee.models.UXIssueMessage;
+import com.looksee.models.enums.AuditCategory;
+import com.looksee.models.enums.AuditLevel;
+import com.looksee.models.enums.AuditName;
+import com.looksee.models.enums.AuditSubcategory;
+import com.looksee.models.enums.Priority;
+import com.looksee.services.AuditService;
+import com.looksee.services.UXIssueMessageService;
 
 
 /**
- * Responsible for executing an audit on the images on a page to determine adherence to alternate text best practices 
- *  for the visual audit category
+ * Responsible for executing an audit on video and audio elements on a page to determine 
+ * adherence to accessibility best practices for WCAG 2.1 compliance
  */
 @Component
 public class CanvasAltTextAudit implements IExecutablePageStateAudit {
@@ -47,10 +53,47 @@ public class CanvasAltTextAudit implements IExecutablePageStateAudit {
 	/**
 	 * {@inheritDoc}
 	 * 
-	 * Scores images on a page based on if the image has an "alt" value present, format is valid and the 
-	 *   url goes to a location that doesn't produce a 4xx error 
-	 * @throws MalformedURLException 
-	 * @throws URISyntaxException 
+	 * Executes an accessibility audit on video and audio elements to ensure WCAG 2.1 compliance.
+	 * 
+	 * <p><strong>Preconditions:</strong></p>
+	 * <ul>
+	 *   <li>{@code page_state} must not be null</li>
+	 *   <li>{@code page_state.getElements()} must return a valid collection of ElementState objects</li>
+	 *   <li>{@code audit_service} and {@code issue_message_service} must be properly injected</li>
+	 * </ul>
+	 * 
+	 * <p><strong>Postconditions:</strong></p>
+	 * <ul>
+	 *   <li>Returns a non-null Audit object with category CONTENT, subcategory IMAGERY, and name ALT_TEXT</li>
+	 *   <li>All video and audio elements from the page state have been evaluated for accessibility compliance</li>
+	 *   <li>Issue messages have been created and saved for each video/audio element (compliance or violation)</li>
+	 *   <li>The returned audit contains the total score calculated from all video/audio elements</li>
+	 *   <li>All issue messages are associated with the returned audit</li>
+	 * </ul>
+	 * 
+	 * <p><strong>Invariants:</strong></p>
+	 * <ul>
+	 *   <li>Points earned cannot exceed max points possible</li>
+	 *   <li>Each video/audio element generates exactly two issue messages (one for track element, one for transcript link)</li>
+	 *   <li>All issue messages have appropriate priority levels (HIGH for violations, NONE for compliance)</li>
+	 * </ul>
+	 * 
+	 * <p><strong>Behavior:</strong></p>
+	 * <ul>
+	 *   <li>Filters page elements to find only video and audio elements</li>
+	 *   <li>For each video/audio element, parses its HTML content using Jsoup</li>
+	 *   <li>Checks for presence of &lt;track&gt; elements (for captions/subtitles)</li>
+	 *   <li>Checks for presence of &lt;a&gt; elements (potential transcript links)</li>
+	 *   <li>Creates violation issues for elements missing track elements or transcript links</li>
+	 *   <li>Creates compliance issues for elements with proper accessibility features</li>
+	 *   <li>Calculates overall accessibility score based on compliance rate</li>
+	 *   <li>Persists all audit data and issue messages to the database</li>
+	 * </ul>
+	 * 
+	 * @param page_state The page state containing elements to audit, must not be null
+	 * @param audit_record The audit record for tracking this audit execution
+	 * @param design_system The design system context (unused in this implementation)
+	 * @return A completed Audit object with accessibility compliance results for video and audio elements
 	 */
 	@Override
 	public Audit execute(PageState page_state, AuditRecord audit_record, DesignSystem design_system) { 
@@ -73,11 +116,11 @@ public class CanvasAltTextAudit implements IExecutablePageStateAudit {
 			}
 		}
 		
-		String why_it_matters = "Ensuring video and audio elements have <title> and <desc> tags ensures that all users understand the purpose of SVG elements on your site.";
+		String why_it_matters = "Ensuring video and audio elements have <track> elements and transcript links ensures that all users can access the content, including those with hearing impairments.";
 		String ada_compliance = "Your website does not meet the level A ADA compliance requirement for" +
-				" ‘Alt’ text within video/audio elements.";
+				" 'Alt' text within video/audio elements.";
 
-		//score each link element
+		//score each video/audio element
 		for(ElementState av_element : element_states) {
 			Document jsoup_doc = Jsoup.parseBodyFragment(av_element.getAllText(), page_state.getUrl());
 			Element track_element = jsoup_doc.getElementsByTag("track").first();
@@ -126,12 +169,12 @@ public class CanvasAltTextAudit implements IExecutablePageStateAudit {
 
 			if(link_element == null || link_element.text().isEmpty()){
 				String title = av_element.getName()+ " does not have link to transcript.";
-				String description = av_element.getName()+" does not have link to trascript";
+				String description = av_element.getName()+" does not have link to transcript";
 				
 				ElementStateIssueMessage issue_message = new ElementStateIssueMessage(
 					Priority.HIGH,
 					description,
-					"SVG tag should have a <desc> element defined within the SVG",
+					av_element.getName()+" tag should have a link to transcript for accessibility",
 					null,
 					AuditCategory.CONTENT,
 					labels,

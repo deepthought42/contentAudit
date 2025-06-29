@@ -22,9 +22,12 @@ jobs:
           distribution: 'adopt'
           java-version: '21'
 
+      - name: Download core JAR
+        run: bash scripts/download-core.sh
+
       - name: Test with Maven
         run: mvn test
-        
+
   build:
     needs: test
     runs-on: ubuntu-latest

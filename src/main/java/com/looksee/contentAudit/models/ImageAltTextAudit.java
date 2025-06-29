@@ -1,7 +1,5 @@
 package com.looksee.contentAudit.models;
 
-import java.net.MalformedURLException;
-import java.net.URISyntaxException;
 import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.List;
@@ -15,13 +13,21 @@ import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
-import com.looksee.contentAudit.models.enums.AuditCategory;
-import com.looksee.contentAudit.models.enums.AuditLevel;
-import com.looksee.contentAudit.models.enums.AuditName;
-import com.looksee.contentAudit.models.enums.AuditSubcategory;
-import com.looksee.contentAudit.models.enums.Priority;
-import com.looksee.contentAudit.services.AuditService;
-import com.looksee.contentAudit.services.UXIssueMessageService;
+import com.looksee.models.Audit;
+import com.looksee.models.AuditRecord;
+import com.looksee.models.DesignSystem;
+import com.looksee.models.ElementState;
+import com.looksee.models.ElementStateIssueMessage;
+import com.looksee.models.IExecutablePageStateAudit;
+import com.looksee.models.PageState;
+import com.looksee.models.UXIssueMessage;
+import com.looksee.models.enums.AuditCategory;
+import com.looksee.models.enums.AuditLevel;
+import com.looksee.models.enums.AuditName;
+import com.looksee.models.enums.AuditSubcategory;
+import com.looksee.models.enums.Priority;
+import com.looksee.services.AuditService;
+import com.looksee.services.UXIssueMessageService;
 
 
 /**
@@ -47,13 +53,50 @@ public class ImageAltTextAudit implements IExecutablePageStateAudit {
 	/**
 	 * {@inheritDoc}
 	 * 
-	 * Scores images on a page based on if the image has an "alt" value present, format is valid and the 
-	 *   url goes to a location that doesn't produce a 4xx error 
-	 * @throws MalformedURLException 
-	 * @throws URISyntaxException 
+	 * Executes an accessibility audit on area, input, and embed elements to ensure WCAG 2.1 compliance for alt text.
+	 * 
+	 * <p><strong>Preconditions:</strong></p>
+	 * <ul>
+	 *   <li>{@code page_state} must not be null</li>
+	 *   <li>{@code page_state.getElements()} must return a valid collection of ElementState objects</li>
+	 *   <li>{@code audit_service} and {@code issue_message_service} must be properly injected</li>
+	 * </ul>
+	 * 
+	 * <p><strong>Postconditions:</strong></p>
+	 * <ul>
+	 *   <li>Returns a non-null Audit object with category CONTENT, subcategory IMAGERY, and name ALT_TEXT</li>
+	 *   <li>All area, input, and embed elements from the page state have been evaluated for alt attribute presence and content</li>
+	 *   <li>Issue messages have been created and saved for each element (compliance or violation)</li>
+	 *   <li>The returned audit contains the total score calculated from all evaluated elements</li>
+	 *   <li>All issue messages are associated with the returned audit</li>
+	 * </ul>
+	 * 
+	 * <p><strong>Invariants:</strong></p>
+	 * <ul>
+	 *   <li>Points earned cannot exceed max points possible</li>
+	 *   <li>Each element generates exactly one issue message</li>
+	 *   <li>All issue messages have appropriate priority levels (HIGH for violations, NONE for compliance)</li>
+	 * </ul>
+	 * 
+	 * <p><strong>Behavior:</strong></p>
+	 * <ul>
+	 *   <li>Filters page elements to find only area, input, and embed elements</li>
+	 *   <li>For each element, parses its HTML content using Jsoup and searches for alt attribute</li>
+	 *   <li>Creates violation issues for elements without alt attribute or with empty alt attribute value</li>
+	 *   <li>Creates compliance issues for elements with proper alt attribute content</li>
+	 *   <li>Calculates overall accessibility score based on compliance rate</li>
+	 *   <li>Persists all audit data and issue messages to the database</li>
+	 * </ul>
+	 * 
+	 * @param page_state The page state containing elements to audit, must not be null
+	 * @param audit_record The audit record for tracking this audit execution
+	 * @param design_system The design system context (unused in this implementation)
+	 * @return A completed Audit object with accessibility compliance results for area, input, and embed elements
 	 */
 	@Override
-	public Audit execute(PageState page_state, AuditRecord audit_record, DesignSystem design_system) { 
+	public Audit execute(PageState page_state,
+						AuditRecord audit_record,
+						DesignSystem design_system) {
 		assert page_state != null;
 		
 		Set<UXIssueMessage> issue_messages = new HashSet<>();
@@ -79,8 +122,8 @@ public class ImageAltTextAudit implements IExecutablePageStateAudit {
 		String why_it_matters = "Alt-text helps with both SEO and accessibility. Search engines use alt-text"
 				+ " to help determine how usable and your site is as a way of ranking your site.";
 		
-		String ada_compliance = "Your website does not meet the level A ADA compliance requirement for" + 
-				" ‘Alt’ text for images present on the website.";
+		String ada_compliance = "Your website does not meet the level A ADA compliance requirement for" +
+				" 'Alt' text for images present on the website.";
 
 		//score each link element
 		for(ElementState alt_element : alt_text_elements) {
