@@ -29,12 +29,25 @@ import com.looksee.models.enums.Priority;
 import com.looksee.services.AuditService;
 import com.looksee.services.UXIssueMessageService;
 
+import lombok.NoArgsConstructor;
+
 
 /**
- * Responsible for executing an audit on iframe elements on a page to determine
- * adherence to accessibility best practices for WCAG 2.1 compliance
+ * Responsible for executing an accessibility audit on iframe elements on a page
+ * to ensure WCAG 2.1 compliance by checking for the presence of a title attribute.
+ *
+ * <p>This audit evaluates iframe elements to ensure they provide accessible
+ * alternatives for users with disabilities. Elements are considered compliant
+ * if they contain a title attribute that provides a textual description of the content.
+ *
+ * <p>The audit supports WCAG Level A compliance by ensuring that iframe elements
+ * comply with the WCAG 2.1 success criterion 1.1.1.</p>
+ *
+ * WCAG Level - A
+ * WCAG Success Criterion - https://www.w3.org/TR/UNDERSTANDING-WCAG20/meaning-supplements.html
  */
 @Component
+@NoArgsConstructor
 public class IframeAltTextAudit implements IExecutablePageStateAudit {
 	@SuppressWarnings("unused")
 	private static Logger log = LoggerFactory.getLogger(ImageAltTextAudit.class);
@@ -45,14 +58,7 @@ public class IframeAltTextAudit implements IExecutablePageStateAudit {
 	@Autowired
 	private UXIssueMessageService issue_message_service;
 	
-	public IframeAltTextAudit() {
-		//super(buildBestPractices(), getAdaDescription(), getAuditDescription(), AuditSubcategory.LINKS);
-	}
-
-	
 	/**
-	 * {@inheritDoc}
-	 * 
 	 * Executes an accessibility audit on iframe elements to ensure WCAG 2.1 compliance.
 	 * 
 	 * <p><strong>Preconditions:</strong></p>
@@ -131,7 +137,7 @@ public class IframeAltTextAudit implements IExecutablePageStateAudit {
 				
 				ElementStateIssueMessage issue_message = new ElementStateIssueMessage(
 					Priority.HIGH,
-					description, 
+					description,
 					iframe_element.getName()+" tag should have the title attribute defined",
 					null,
 					AuditCategory.CONTENT,

@@ -40,18 +40,10 @@ import lombok.NoArgsConstructor;
  * out non-meaningful text elements (buttons, links, very short text) and analyzes remaining text
  * content for reading difficulty.</p>
  *
- * <p>The audit supports WCAG Level AAA compliance by ensuring that text content doesn't require
- * reading ability beyond the lower secondary education level (grades 5-8). It provides detailed
- * feedback on text complexity and recommendations for improving readability.</p>
- *
- * <p>Key features:</p>
- * <ul>
- *   <li>Uses Flesch Reading Ease scoring (0-100 scale) to assess text complexity</li>
- *   <li>Considers target user education level when assigning scores</li>
- *   <li>Filters out duplicate and non-meaningful text content</li>
- *   <li>Provides specific recommendations for improving readability</li>
- *   <li>Generates detailed issue messages for both problematic and compliant text</li>
- * </ul>
+ * <p>The audit supports WCAG Level AAA compliance for success criterion 3.1.5
+ * by ensuring that text content doesn't require reading ability beyond the
+ * lower secondary education level (grades 5-8). It provides detailed feedback
+ * on text complexity and recommendations for improving readability.</p>
  *
  * WCAG Level - AAA
  * WCAG Success Criterion - https://www.w3.org/TR/UNDERSTANDING-WCAG20/meaning-supplements.html
@@ -69,8 +61,6 @@ public class ReadabilityAudit implements IExecutablePageStateAudit {
 	private UXIssueMessageService issue_message_service;
 	
 	/**
-	 * {@inheritDoc}
-	 *
 	 * Executes a readability audit on a web page to assess text complexity and compliance with WCAG AAA standards.
 	 * 
 	 * <p><strong>Preconditions:</strong></p>

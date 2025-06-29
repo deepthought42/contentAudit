@@ -29,12 +29,25 @@ import com.looksee.models.enums.Priority;
 import com.looksee.services.AuditService;
 import com.looksee.services.UXIssueMessageService;
 
+import lombok.NoArgsConstructor;
+
 
 /**
- * Responsible for executing an audit on the images on a page to determine
- * adherence to alternate text best practices for the visual audit category
+ * Responsible for executing an accessibility audit on applet elements on a page
+ * to ensure WCAG 2.1 compliance by checking for the presence of an alt tag.
+ *
+ * <p>This audit evaluates applet elements to ensure they provide accessible
+ * alternatives for users with disabilities. Elements are considered compliant
+ * if they contain an alt tag that provides a textual description of the content.
+ *
+ * <p>The audit supports WCAG Level A compliance by ensuring that applet
+ * elements comply with the WCAG 2.1 success criterion 1.1.1.</p>
+ *
+ * WCAG Level - A
+ * WCAG Success Criterion - https://www.w3.org/WAI/WCAG21/Understanding/non-text-content.html
  */
 @Component
+@NoArgsConstructor
 public class AppletAltTextAudit implements IExecutablePageStateAudit {
 	@SuppressWarnings("unused")
 	private static Logger log = LoggerFactory.getLogger(ImageAltTextAudit.class);
@@ -45,23 +58,16 @@ public class AppletAltTextAudit implements IExecutablePageStateAudit {
 	@Autowired
 	private UXIssueMessageService issue_message_service;
 	
-	public AppletAltTextAudit() {
-		//super(buildBestPractices(), getAdaDescription(), getAuditDescription(), AuditSubcategory.LINKS);
-	}
-
-	
 	/**
-	 * {@inheritDoc}
-	 * 
 	 * Executes an accessibility audit on applet elements to ensure WCAG 2.1 compliance.
-	 * 
+	 *
 	 * <p><strong>Preconditions:</strong></p>
 	 * <ul>
 	 *   <li>{@code page_state} must not be null</li>
 	 *   <li>{@code page_state.getElements()} must return a valid collection of ElementState objects</li>
 	 *   <li>{@code audit_service} and {@code issue_message_service} must be properly injected</li>
 	 * </ul>
-	 * 
+	 *
 	 * <p><strong>Postconditions:</strong></p>
 	 * <ul>
 	 *   <li>Returns a non-null Audit object with category CONTENT, subcategory IMAGERY, and name ALT_TEXT</li>
@@ -70,14 +76,14 @@ public class AppletAltTextAudit implements IExecutablePageStateAudit {
 	 *   <li>The returned audit contains the total score calculated from all applet elements</li>
 	 *   <li>All issue messages are associated with the returned audit</li>
 	 * </ul>
-	 * 
+	 *
 	 * <p><strong>Invariants:</strong></p>
 	 * <ul>
 	 *   <li>Points earned cannot exceed max points possible</li>
 	 *   <li>Each applet element generates exactly one issue message</li>
 	 *   <li>All issue messages have appropriate priority levels (HIGH for violations, NONE for compliance)</li>
 	 * </ul>
-	 * 
+	 *
 	 * <p><strong>Behavior:</strong></p>
 	 * <ul>
 	 *   <li>Filters page elements to find only applet elements</li>
@@ -87,7 +93,7 @@ public class AppletAltTextAudit implements IExecutablePageStateAudit {
 	 *   <li>Calculates overall accessibility score based on compliance rate</li>
 	 *   <li>Persists all audit data and issue messages to the database</li>
 	 * </ul>
-	 * 
+	 *
 	 * @param page_state The page state containing elements to audit, must not be null
 	 * @param audit_record The audit record for tracking this audit execution
 	 * @param design_system The design system context (unused in this implementation)
@@ -129,7 +135,7 @@ public class AppletAltTextAudit implements IExecutablePageStateAudit {
 				
 				ElementStateIssueMessage issue_message = new ElementStateIssueMessage(
 					Priority.HIGH,
-					description, 
+					description,
 					input_element.getName()+" tag should have <alt> tag defined within the applet",
 					null,
 					AuditCategory.CONTENT,
@@ -176,17 +182,17 @@ public class AppletAltTextAudit implements IExecutablePageStateAudit {
 		String description = "Applet elements without alternative text defined as a non empty string value";
 
 		Audit audit = new Audit(AuditCategory.CONTENT,
-								 AuditSubcategory.IMAGERY,
-								 AuditName.ALT_TEXT,
-								 points_earned,
-								 null,
-								 AuditLevel.PAGE,
-								 max_points,
-								 page_state.getUrl(), 
-								 why_it_matters, 
-								 description,
-								 true);
-								 
+								AuditSubcategory.IMAGERY,
+								AuditName.ALT_TEXT,
+								points_earned,
+								null,
+								AuditLevel.PAGE,
+								max_points,
+								page_state.getUrl(),
+								why_it_matters,
+								description,
+								true);
+
 		audit = audit_service.save(audit);
 		audit_service.addAllIssues(audit.getId(), issue_messages);
 		

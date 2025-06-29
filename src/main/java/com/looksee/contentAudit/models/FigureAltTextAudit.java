@@ -29,12 +29,25 @@ import com.looksee.models.enums.Priority;
 import com.looksee.services.AuditService;
 import com.looksee.services.UXIssueMessageService;
 
+import lombok.NoArgsConstructor;
+
 
 /**
- * Responsible for executing an audit on the images on a page to determine adherence to alternate text best practices 
- *  for the visual audit category
+ * Responsible for executing an accessibility audit on figure elements on a page
+ * to ensure WCAG 2.1 compliance by checking for the presence of a figcaption element.
+ *
+ * <p>This audit evaluates figure elements to ensure they provide accessible
+ * alternatives for users with disabilities. Elements are considered compliant
+ * if they contain a figcaption element that provides a textual description of the content.
+ *
+ * <p>The audit supports WCAG Level A compliance by ensuring that figure elements
+ * comply with the WCAG 2.1 success criterion 1.1.1.</p>
+ *
+ * WCAG Level - A
+ * WCAG Success Criterion - https://www.w3.org/TR/UNDERSTANDING-WCAG20/meaning-supplements.html
  */
 @Component
+@NoArgsConstructor
 public class FigureAltTextAudit implements IExecutablePageStateAudit {
 	@SuppressWarnings("unused")
 	private static Logger log = LoggerFactory.getLogger(ImageAltTextAudit.class);
@@ -45,14 +58,7 @@ public class FigureAltTextAudit implements IExecutablePageStateAudit {
 	@Autowired
 	private UXIssueMessageService issue_message_service;
 	
-	public FigureAltTextAudit() {
-		//super(buildBestPractices(), getAdaDescription(), getAuditDescription(), AuditSubcategory.LINKS);
-	}
-
-	
 	/**
-	 * {@inheritDoc}
-	 *
 	 * Executes an accessibility audit on figure elements to ensure WCAG 2.1 compliance.
 	 *
 	 * <p><strong>Preconditions:</strong></p>

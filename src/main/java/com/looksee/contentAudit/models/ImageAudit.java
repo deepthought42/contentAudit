@@ -27,10 +27,27 @@ import com.looksee.services.AuditService;
 import com.looksee.services.UXIssueMessageService;
 import com.looksee.utils.BrowserUtils;
 
+import lombok.NoArgsConstructor;
+
 /**
- * Responsible for executing an audit on the hyperlinks on a page for the information architecture audit category
+ * Responsible for executing an audit on the images on a page to detect
+ * potential copyright infringement by identifying images that appear on
+ * other websites, indicating they may be stock images or unlicensed content.
+ *
+ * <p>This audit evaluates images to ensure they are unique to the site and
+ * not stock images or unlicensed content. Images that are flagged as appearing
+ * on other websites are considered potential copyright violations and receive
+ * 0 points, while unique images receive 1 point.
+ *
+ * <p>The audit supports WCAG Level A compliance by ensuring that images are
+ * unique to the site and not stock images or unlicensed content to ensure
+ * accessibility compliance with WCAG 2.1 success criterion 1.1.1.
+ *
+ * WCAG Level - A
+ * WCAG Success Criterion - https://www.w3.org/TR/UNDERSTANDING-WCAG20/meaning-supplements.html
  */
 @Component
+@NoArgsConstructor
 public class ImageAudit implements IExecutablePageStateAudit {
 	@SuppressWarnings("unused")
 	private static Logger log = LoggerFactory.getLogger(ImageAudit.class);
@@ -41,15 +58,10 @@ public class ImageAudit implements IExecutablePageStateAudit {
 	@Autowired
 	private UXIssueMessageService issue_message_service;
 	
-	public ImageAudit() {
-	}
-
-	
 	/**
-	 * {@inheritDoc}
-	 * 
-	 * Executes a copyright audit on images to detect potential copyright infringement by identifying
-	 * images that appear on other websites, indicating they may be stock images or unlicensed content.
+	 * Executes a copyright audit on images to detect potential copyright
+	 * infringement by identifying images that appear on other websites,
+	 * indicating they may be stock images or unlicensed content.
 	 * 
 	 * <p><strong>Preconditions:</strong></p>
 	 * <ul>
@@ -96,12 +108,12 @@ public class ImageAudit implements IExecutablePageStateAudit {
 	 * @return A completed Audit object with copyright compliance results for image elements
 	 */
 	@Override
-	public Audit execute(PageState page_state, AuditRecord audit_record, DesignSystem design_system) {
+	public Audit execute(PageState page_state,
+						AuditRecord audit_record,
+						DesignSystem design_system) {
 		assert page_state != null;
 		
 		//get all elements that are text containers
-		//List<ElementState> elements = page_state_service.getElementStates(page_state.getKey());
-		//filter elements that aren't text elements
 		List<ImageElementState> element_list = BrowserUtils.getImageElements(page_state.getElements());
 		
 		Score copyright_score = calculateCopyrightScore(element_list);

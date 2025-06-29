@@ -29,17 +29,25 @@ import com.looksee.services.AuditService;
 import com.looksee.services.UXIssueMessageService;
 import com.looksee.utils.BrowserUtils;
 
+import lombok.NoArgsConstructor;
+
 /**
- * Responsible for executing an audit on the hyperlinks on a page for the
- * information architecture audit category.
+ * Responsible for executing an audit on the text content on a page to ensure
+ * that the text is easy to read and understand.
  *
  * <p>This audit evaluates the paragraphing of text content on a web page to
  * ensure it meets readability standards. It checks for proper sentence length
  * and spacing between paragraphs to enhance user experience.</p>
  *
- * <p>The audit supports WCAG Level A compliance by ensuring that text content
+ * <p>The audit supports WCAG Level A compliance for success criterion 3.1.1
+ * by ensuring that text content meets readability standards and is presented
+ * in a way that is easy to understand.</p>
+ *
+ * WCAG Level - AAA
+ * WCAG Success Criterion - https://www.w3.org/TR/UNDERSTANDING-WCAG20/meaning-supplements.html
  */
 @Component
+@NoArgsConstructor
 public class ParagraphingAudit implements IExecutablePageStateAudit {
 	@SuppressWarnings("unused")
 	private static Logger log = LoggerFactory.getLogger(ParagraphingAudit.class);
@@ -50,15 +58,10 @@ public class ParagraphingAudit implements IExecutablePageStateAudit {
 	@Autowired
 	private UXIssueMessageService issue_message_service;
 	
-	
-	public ParagraphingAudit() {
-	}
-
-	
 	/**
-	 * {@inheritDoc}
-	 *
-	 * Executes a paragraphing audit on a web page to assess sentence length compliance with EU and US governmental standards.
+	 * Executes a paragraphing audit on a web page to assess sentence length
+	 * compliance with EU and US governmental standards to ensure that the
+	 * text is easy to read and understand.
 	 * 
 	 * <p><strong>Preconditions:</strong></p>
 	 * <ul>
@@ -215,9 +218,9 @@ public class ParagraphingAudit implements IExecutablePageStateAudit {
 				String description = "The sentence  \"" + sentence.getText().getContent() + "\" has more than 25 words which can make it difficult for users to understand";
 
 				SentenceIssueMessage issue_message = new SentenceIssueMessage(
-																Priority.MEDIUM, 
-																description, 
-																recommendation, 
+																Priority.MEDIUM,
+																description,
+																recommendation,
 																element,
 																AuditCategory.CONTENT,
 																labels,

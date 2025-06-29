@@ -29,6 +29,8 @@ import com.looksee.models.enums.Priority;
 import com.looksee.services.AuditService;
 import com.looksee.services.UXIssueMessageService;
 
+import lombok.NoArgsConstructor;
+
 /**
  * Responsible for executing an accessibility audit on object and canvas
  * elements on a page to determine adherence to WCAG 2.1 compliance
@@ -41,8 +43,12 @@ import com.looksee.services.UXIssueMessageService;
  *
  * <p>The audit supports WCAG Level A compliance by ensuring that embedded
  * objects and canvas elements have proper accessibility features implemented.</p>
+ *
+ * WCAG Level - A
+ * WCAG Success Criterion - https://www.w3.org/TR/UNDERSTANDING-WCAG20/meaning-supplements.html
  */
 @Component
+@NoArgsConstructor
 public class ObjectAltTextAudit implements IExecutablePageStateAudit {
 	@SuppressWarnings("unused")
 	private static Logger log = LoggerFactory.getLogger(ImageAltTextAudit.class);
@@ -52,11 +58,6 @@ public class ObjectAltTextAudit implements IExecutablePageStateAudit {
 	
 	@Autowired
 	private UXIssueMessageService issue_message_service;
-	
-	public ObjectAltTextAudit() {
-		//super(buildBestPractices(), getAdaDescription(), getAuditDescription(), AuditSubcategory.LINKS);
-	}
-
 	
 	/**
 	 * Executes an accessibility audit on object and canvas elements to ensure WCAG 2.1 compliance.

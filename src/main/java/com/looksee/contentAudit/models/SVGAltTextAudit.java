@@ -29,22 +29,28 @@ import com.looksee.models.enums.Priority;
 import com.looksee.services.AuditService;
 import com.looksee.services.UXIssueMessageService;
 
+import lombok.NoArgsConstructor;
+
 
 /**
- * Responsible for executing an audit on SVG elements on a page to determine
- * adherence to accessibility best practices for WCAG 2.1 compliance by
- * checking for the presence of &lt;title&gt; and &lt;desc&gt; elements
- * within SVG tags.
+ * Responsible for executing an accessibility audit on SVG elements on a page
+ * to ensure WCAG 2.1 compliance by checking for the presence of &lt;title&gt;
+ * and &lt;desc&gt; elements within SVG tags.
  *
  * <p>This audit evaluates SVG elements to ensure they provide accessible
  * alternatives for users with disabilities. Elements are considered compliant
- * if they contain either alternative text content or link elements that provide
- * accessible navigation or description.</p>
+ * if they contain either a title element that provides a textual description
+ * of the content or a desc element that provides a textual description of the
+ * content.</p>
  *
- * <p>The audit supports WCAG Level A compliance by ensuring that embedded
- * objects and canvas elements have proper accessibility features implemented.</p>
+ * <p>The audit supports WCAG Level A compliance by ensuring that SVG elements
+ * comply with the WCAG 2.1 success criterion 1.1.1.</p>
+ *
+ * WCAG Level - A
+ * WCAG Success Criterion - https://www.w3.org/TR/UNDERSTANDING-WCAG20/meaning-supplements.html
  */
 @Component
+@NoArgsConstructor
 public class SVGAltTextAudit implements IExecutablePageStateAudit {
 	@SuppressWarnings("unused")
 	private static Logger log = LoggerFactory.getLogger(ImageAltTextAudit.class);
@@ -55,14 +61,7 @@ public class SVGAltTextAudit implements IExecutablePageStateAudit {
 	@Autowired
 	private UXIssueMessageService issue_message_service;
 	
-	public SVGAltTextAudit() {
-		//super(buildBestPractices(), getAdaDescription(), getAuditDescription(), AuditSubcategory.LINKS);
-	}
-
-	
 	/**
-	 * {@inheritDoc}
-	 * 
 	 * Executes an accessibility audit on SVG elements to ensure WCAG 2.1 compliance for alternative text.
 	 * 
 	 * <p><strong>Preconditions:</strong></p>

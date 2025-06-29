@@ -26,16 +26,28 @@ import com.looksee.models.enums.AuditName;
 import com.looksee.models.enums.AuditSubcategory;
 import com.looksee.models.enums.Priority;
 import com.looksee.services.AuditService;
-import com.looksee.services.PageStateService;
 import com.looksee.services.UXIssueMessageService;
 import com.looksee.utils.BrowserUtils;
+
+import lombok.NoArgsConstructor;
 
 /**
  * Responsible for executing an audit on images on a page to determine
  * compliance with content policy restrictions for adult content and violence
  * based on the design system's allowed image characteristics.
+ *
+ * <p>This audit evaluates images to ensure they comply with content policy
+ * restrictions for adult content and violence. Images that contain adult
+ * content or violence are considered non-compliant and receive 0 points,
+ * while images that do not contain adult content or violence are considered
+ * compliant and receive 1 point.
+ *
+ * This audit is not part of the WCAG 2.1 compliance audit. Instead this audit
+ * is focused on ensuring that images comply with a brand's content policy
+ * restrictions for adult content and violence.
  */
 @Component
+@NoArgsConstructor
 public class ImagePolicyAudit implements IExecutablePageStateAudit {
 	@SuppressWarnings("unused")
 	private static Logger log = LoggerFactory.getLogger(ImagePolicyAudit.class);
@@ -44,21 +56,12 @@ public class ImagePolicyAudit implements IExecutablePageStateAudit {
 	private AuditService audit_service;
 	
 	@Autowired
-	private	PageStateService page_state_service;
-	
-	@Autowired
 	private UXIssueMessageService issue_message_service;
 	
-	public ImagePolicyAudit() {
-	}
-
-	
 	/**
-	 * {@inheritDoc}
-	 * 
 	 * Executes a content policy audit on images to ensure compliance with design system
 	 * restrictions for adult content and violence.
-	 * 
+	 *
 	 * <p><strong>Preconditions:</strong></p>
 	 * <ul>
 	 *   <li>{@code page_state} must not be null</li>
@@ -111,8 +114,6 @@ public class ImagePolicyAudit implements IExecutablePageStateAudit {
 		assert page_state != null;
 		
 		//get all elements that are text containers
-		//List<ElementState> elements = page_state_service.getElementStates(page_state.getKey());
-		//filter elements that aren't text elements
 		List<ElementState> element_list = BrowserUtils.getTextElements(page_state.getElements());
 		
 		String why_it_matters = "";
@@ -206,9 +207,9 @@ public class ImagePolicyAudit implements IExecutablePageStateAudit {
 					String description = "Image contains nudity and/or adult content";
 
 					ElementStateIssueMessage issue_message = new ElementStateIssueMessage(
-																	Priority.MEDIUM, 
-																	description, 
-																	recommendation, 
+																	Priority.MEDIUM,
+																	description,
+																	recommendation,
 																	element,
 																	AuditCategory.CONTENT,
 																	labels,
@@ -233,9 +234,9 @@ public class ImagePolicyAudit implements IExecutablePageStateAudit {
 					String description = "Image contains violence";
 					
 					ElementStateIssueMessage issue_message = new ElementStateIssueMessage(
-																	Priority.MEDIUM, 
-																	description, 
-																	recommendation, 
+																	Priority.MEDIUM,
+																	description,
+																	recommendation,
 																	element,
 																	AuditCategory.CONTENT,
 																	labels,
