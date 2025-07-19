@@ -12,7 +12,7 @@ jobs:
   test:
     runs-on: ubuntu-latest
     # This job runs only when a PR is merged to master
-    if: github.event.action == 'closed' && github.event.pull_request.merged == true
+    if: github.event_name == 'pull_request'
 
     steps:
       - name: Checkout code
