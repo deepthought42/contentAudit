@@ -11,8 +11,6 @@ on:
 jobs:
   test:
     runs-on: ubuntu-latest
-    # This job runs only when a PR is merged to master
-    if: github.event_name == 'pull_request'
 
     steps:
       - name: Checkout code
@@ -37,7 +35,6 @@ jobs:
   bump-version:
     needs: test
     # Run only when PR is merged to master
-    if: github.event_name == 'pull_request'
     runs-on: ubuntu-latest
     outputs:
       VERSION: ${{ steps.get_version.outputs.VERSION }}
@@ -66,7 +63,6 @@ jobs:
   build-and-release:
     needs: bump-version
     # Run only when PR is merged to master
-    if: github.event_name == 'pull_request'
     runs-on: ubuntu-latest
     env:
       VERSION: ${{ needs.bump-version.outputs.VERSION }}
@@ -94,7 +90,6 @@ jobs:
   github-release:
     needs: bump-version
     # Run only when PR is merged to master
-    if: github.event_name == 'pull_request'
     runs-on: ubuntu-latest
     env:
       VERSION: ${{ needs.bump-version.outputs.VERSION }}
