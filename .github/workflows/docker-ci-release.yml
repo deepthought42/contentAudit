@@ -29,7 +29,7 @@ jobs:
 
 
       - name: Install core JAR to local repository
-        run: mvn install:install-file -Dfile=libs/core-0.3.17.jar -DgroupId=com.looksee -DartifactId=core -Dversion=0.3.17 -Dpackaging=jar
+        run: mvn install:install-file -Dfile=libs/core-0.3.18.jar -DgroupId=com.looksee -DartifactId=core -Dversion=0.3.18 -Dpackaging=jar
     
       - name: Test with Maven
         run: mvn test
@@ -37,7 +37,7 @@ jobs:
   bump-version:
     needs: test
     # Run only when PR is merged to master
-    if: github.event.action == 'closed' && github.event.pull_request.merged == true
+    if: github.event_name == 'pull_request'
     runs-on: ubuntu-latest
     outputs:
       VERSION: ${{ steps.get_version.outputs.VERSION }}
@@ -66,7 +66,7 @@ jobs:
   build-and-release:
     needs: bump-version
     # Run only when PR is merged to master
-    if: github.event.action == 'closed' && github.event.pull_request.merged == true
+    if: github.event_name == 'pull_request'
     runs-on: ubuntu-latest
     env:
       VERSION: ${{ needs.bump-version.outputs.VERSION }}
@@ -94,7 +94,7 @@ jobs:
   github-release:
     needs: bump-version
     # Run only when PR is merged to master
-    if: github.event.action == 'closed' && github.event.pull_request.merged == true
+    if: github.event_name == 'pull_request'
     runs-on: ubuntu-latest
     env:
       VERSION: ${{ needs.bump-version.outputs.VERSION }}
@@ -113,7 +113,7 @@ jobs:
         run: bash scripts/download-core.sh
 
       - name: Install core JAR to local repository
-        run: mvn install:install-file -Dfile=libs/core-0.3.17.jar -DgroupId=com.looksee -DartifactId=core -Dversion=0.3.17 -Dpackaging=jar
+        run: mvn install:install-file -Dfile=libs/core-0.3.18.jar -DgroupId=com.looksee -DartifactId=core -Dversion=0.3.18 -Dpackaging=jar
     
       - name: Test with Maven
         run: mvn install -DskipTests
