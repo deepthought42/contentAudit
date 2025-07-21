@@ -1,3 +1,11 @@
+## [1.1.1](https://github.com/deepthought42/contentAudit/compare/v1.1.0...v1.1.1) (2025-07-21)
+
+
+### Bug Fixes
+
+* ignore IDE specific folders ([a0a862e](https://github.com/deepthought42/contentAudit/commit/a0a862e3063b868bf627b432bac65d62bae220c1))
+* import error resolved ([d07e1b8](https://github.com/deepthought42/contentAudit/commit/d07e1b8563bc9bc154c6b01502d8b3177ef6e626))
+
 # [1.1.0](https://github.com/deepthought42/contentAudit/compare/v1.0.3...v1.1.0) (2025-07-19)
 
 
