@@ -40,8 +40,6 @@ import com.looksee.contentAudit.models.AppletAltTextAudit;
 import com.looksee.contentAudit.models.CanvasAltTextAudit;
 import com.looksee.contentAudit.models.IframeAltTextAudit;
 import com.looksee.contentAudit.models.ImageAltTextAudit;
-import com.looksee.contentAudit.models.ImageAudit;
-import com.looksee.contentAudit.models.ImagePolicyAudit;
 import com.looksee.contentAudit.models.ObjectAltTextAudit;
 import com.looksee.contentAudit.models.ParagraphingAudit;
 import com.looksee.contentAudit.models.ReadabilityAudit;
@@ -95,12 +93,6 @@ public class AuditController {
 
 	@Autowired
 	private ReadabilityAudit readability_auditor;
-
-	@Autowired
-	private ImageAudit image_audit;
-
-	@Autowired
-	private ImagePolicyAudit image_policy_audit;
 
 	@Autowired
 	private PubSubAuditUpdatePublisherImpl audit_update_topic;
@@ -163,16 +155,6 @@ public class AuditController {
 			if(!auditAlreadyExists(audits, AuditName.PARAGRAPHING)) {
 				Audit paragraph_audit = paragraph_auditor.execute(page, audit_record, null);
 				audit_record_service.addAudit(audit_record_msg.getPageAuditId(), paragraph_audit.getId());
-			}
-
-			if(!auditAlreadyExists(audits, AuditName.IMAGE_COPYRIGHT)) {
-				Audit image_copyright_audit = image_audit.execute(page, audit_record, null);
-				audit_record_service.addAudit(audit_record_msg.getPageAuditId(), image_copyright_audit.getId());
-			}
-			
-			if(!auditAlreadyExists(audits, AuditName.IMAGE_POLICY)) {
-				Audit image_policy_result = image_policy_audit.execute(page, audit_record, null);
-				audit_record_service.addAudit(audit_record_msg.getPageAuditId(), image_policy_result.getId());
 			}
 		} catch (Exception e) {
 			log.error("exception caught during content audit");

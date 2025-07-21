@@ -15,10 +15,10 @@ import com.looksee.models.ElementState;
 import com.looksee.models.PageState;
 import com.looksee.models.audit.Audit;
 import com.looksee.models.audit.AuditRecord;
-import com.looksee.models.audit.IExecutablePageStateAudit;
 import com.looksee.models.audit.Score;
-import com.looksee.models.audit.SentenceIssueMessage;
-import com.looksee.models.audit.UXIssueMessage;
+import com.looksee.models.audit.interfaces.IExecutablePageStateAudit;
+import com.looksee.models.audit.messages.SentenceIssueMessage;
+import com.looksee.models.audit.messages.UXIssueMessage;
 import com.looksee.models.designsystem.DesignSystem;
 import com.looksee.models.enums.AuditCategory;
 import com.looksee.models.enums.AuditLevel;
@@ -189,8 +189,9 @@ public class ParagraphingAudit implements IExecutablePageStateAudit {
 
 
 	/**
-	 * Reviews list of sentences and gives a score based on how many of those sentences have 
-	 * 		25 words or less. This is considered the maximum sentence length allowed in EU government documentation
+	 * Reviews list of sentences and gives a score based on how many of those
+	 * sentences have 25 words or less. This is considered the maximum sentence
+	 * length allowed in EU government documentation
 	 * @param sentences
 	 * @param element
 	 * @return
@@ -264,7 +265,13 @@ public class ParagraphingAudit implements IExecutablePageStateAudit {
 		return new Score(points_earned, max_points, issue_messages);
 	}
 
-
+	/**
+	 * Calculates the score for a paragraph based on the number of sentences in the paragraph.
+	 * If the paragraph has 5 or fewer sentences, it returns a score of 1.
+	 * If the paragraph has more than 5 sentences, it returns a score of 0.
+	 * @param sentence_count
+	 * @return
+	 */
 	public static Score calculateParagraphScore(int sentence_count) {
 		if(sentence_count <= 5) {
 			return new Score(1, 1, new HashSet<>());
