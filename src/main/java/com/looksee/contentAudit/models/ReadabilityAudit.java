@@ -32,14 +32,14 @@ import io.whelk.flesch.kincaid.ReadabilityCalculator;
 import lombok.NoArgsConstructor;
 
 /**
- * Responsible for executing a readability audit on web page text content to 
- * assess reading complexity and ensure compliance with WCAG AAA accessibility 
+ * Responsible for executing a readability audit on web page text content to
+ * assess reading complexity and ensure compliance with WCAG AAA accessibility
  * standards.
  *
- * <p>This audit evaluates the readability of text content on a web page using 
- * the Flesch Reading Ease formula to determine if content is appropriate for 
- * the target audience's education level. It filters out non-meaningful text 
- * elements (buttons, links, very short text) and analyzes remaining text content 
+ * <p>This audit evaluates the readability of text content on a web page using
+ * the Flesch Reading Ease formula to determine if content is appropriate for
+ * the target audience's education level. It filters out non-meaningful text
+ * elements (buttons, links, very short text) and analyzes remaining text content
  * for reading difficulty.</p>
  *
  * <p>The audit supports WCAG Level AAA compliance for success criterion 3.1.5
