@@ -14,10 +14,10 @@ import com.looksee.models.ElementState;
 import com.looksee.models.PageState;
 import com.looksee.models.audit.Audit;
 import com.looksee.models.audit.AuditRecord;
-import com.looksee.models.audit.IExecutablePageStateAudit;
-import com.looksee.models.audit.ReadingComplexityIssueMessage;
 import com.looksee.models.audit.Score;
-import com.looksee.models.audit.UXIssueMessage;
+import com.looksee.models.audit.interfaces.IExecutablePageStateAudit;
+import com.looksee.models.audit.messages.ReadingComplexityIssueMessage;
+import com.looksee.models.audit.messages.UXIssueMessage;
 import com.looksee.models.designsystem.DesignSystem;
 import com.looksee.models.enums.AuditCategory;
 import com.looksee.models.enums.AuditLevel;
@@ -32,13 +32,15 @@ import io.whelk.flesch.kincaid.ReadabilityCalculator;
 import lombok.NoArgsConstructor;
 
 /**
- * Responsible for executing a readability audit on web page text content to assess reading complexity
- * and ensure compliance with WCAG AAA accessibility standards.
+ * Responsible for executing a readability audit on web page text content to 
+ * assess reading complexity and ensure compliance with WCAG AAA accessibility 
+ * standards.
  *
- * <p>This audit evaluates the readability of text content on a web page using the Flesch Reading Ease
- * formula to determine if content is appropriate for the target audience's education level. It filters
- * out non-meaningful text elements (buttons, links, very short text) and analyzes remaining text
- * content for reading difficulty.</p>
+ * <p>This audit evaluates the readability of text content on a web page using 
+ * the Flesch Reading Ease formula to determine if content is appropriate for 
+ * the target audience's education level. It filters out non-meaningful text 
+ * elements (buttons, links, very short text) and analyzes remaining text content 
+ * for reading difficulty.</p>
  *
  * <p>The audit supports WCAG Level AAA compliance for success criterion 3.1.5
  * by ensuring that text content doesn't require reading ability beyond the
@@ -283,7 +285,16 @@ public class ReadabilityAudit implements IExecutablePageStateAudit {
 		}
 	}
 
-
+	/**
+	 * Generates a description of the issue based on the element, difficulty string,
+	 * ease of reading score, and target user education.
+	 * @param element The element that is being audited
+	 * @param difficulty_string The difficulty string of the element
+	 * @param ease_of_reading_score The ease of reading score of the element
+	 * @param targetUserEducation The target user education of the element
+	 * @return A description of the issue based on the element, difficulty string,
+	 * ease of reading score, and target user education.
+	 */
 	private String generateIssueDescription(ElementState element,
 											String difficulty_string,
 											double ease_of_reading_score,
@@ -294,6 +305,11 @@ public class ReadabilityAudit implements IExecutablePageStateAudit {
 	}
 
 
+	/**
+	 * Gets the consumer type based on the target user education.
+	 * @param targetUserEducation The target user education
+	 * @return The consumer type based on the target user education.
+	 */
 	private String getConsumerType(String targetUserEducation) {
 		String consumer_label = "the average consumer";
 		
@@ -304,7 +320,12 @@ public class ReadabilityAudit implements IExecutablePageStateAudit {
 		return consumer_label;
 	}
 
-
+	/**
+	 * Calculates the points for a given ease of reading score and target user education.
+	 * @param ease_of_reading_score The ease of reading score of the element
+	 * @param target_user_education The target user education of the element
+	 * @return The points for a given ease of reading score and target user education.
+	 */
 	private int getPointsForEducationLevel(double ease_of_reading_score, String target_user_education) {
 		int element_points = 0;
 				
@@ -429,7 +450,14 @@ public class ReadabilityAudit implements IExecutablePageStateAudit {
 		return element_points;
 	}
 
-
+	/**
+	 * Calculates the score for a sentence based on the number of words in the sentence.
+	 * If the sentence has 10 or fewer words, it returns a score of 2.
+	 * If the sentence has more than 10 words, it returns a score of 1.
+	 * If the sentence has more than 20 words, it returns a score of 0.
+	 * @param sentence The sentence to calculate the score for
+	 * @return A score based on the number of words in the sentence.
+	 */
 	public static Score calculateSentenceScore(String sentence) {
 		//    		for each sentence check that sentence is no longer than 20 words
 		String[] words = sentence.split(" ");
@@ -445,6 +473,13 @@ public class ReadabilityAudit implements IExecutablePageStateAudit {
 	}
 
 
+	/**
+	 * Calculates the score for a paragraph based on the number of sentences in the paragraph.
+	 * If the paragraph has 5 or fewer sentences, it returns a score of 1.
+	 * If the paragraph has more than 5 sentences, it returns a score of 0.
+	 * @param sentence_count The number of sentences in the paragraph
+	 * @return A score based on the number of sentences in the paragraph.
+	 */
 	public static Score calculateParagraphScore(int sentence_count) {
 		if(sentence_count <= 5) {
 			return new Score(1, 1, new HashSet<>());
