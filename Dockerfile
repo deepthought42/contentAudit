@@ -12,7 +12,7 @@ COPY pom.xml .
 COPY scripts/download-core.sh ./scripts/download-core.sh
 RUN chmod +x ./scripts/download-core.sh
 RUN bash ./scripts/download-core.sh
-RUN mvn install:install-file -Dfile=libs/core-0.3.18.jar -DgroupId=com.looksee -DartifactId=core -Dversion=0.3.18 -Dpackaging=jar
+RUN mvn install:install-file -Dfile=libs/core-0.3.19.jar -DgroupId=com.looksee -DartifactId=core -Dversion=0.3.19 -Dpackaging=jar
 
 # Copy the rest of the project source code
 COPY src ./src
