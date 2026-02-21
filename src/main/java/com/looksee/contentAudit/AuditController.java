@@ -17,6 +17,7 @@ package com.looksee.contentAudit;
  */
 // [START cloudrun_pubsub_handler]
 // [START run_pubsub_handler]
+import java.nio.charset.StandardCharsets;
 import java.util.Base64;
 import java.util.Optional;
 import java.util.Set;
@@ -118,12 +119,17 @@ public class AuditController {
 
 		PageAuditMessage audit_record_msg;
 		try {
-			String target = new String(Base64.getDecoder().decode(data));
+			String target = new String(Base64.getDecoder().decode(data), StandardCharsets.UTF_8);
 			ObjectMapper input_mapper = new ObjectMapper();
 			audit_record_msg = input_mapper.readValue(target, PageAuditMessage.class);
 		} catch (IllegalArgumentException | JsonProcessingException e) {
 			log.warn("invalid pubsub message format", e);
 			return acknowledgeInvalidMessage("Invalid pubsub message format");
+		}
+
+		if (audit_record_msg.getPageAuditId() == null || audit_record_msg.getPageAuditId().isBlank()) {
+			log.warn("pageAuditId missing from pubsub message");
+			return acknowledgeInvalidMessage("Missing pageAuditId");
 		}
 		
 		try {

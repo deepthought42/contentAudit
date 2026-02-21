@@ -212,7 +212,7 @@ public class ParagraphingAudit implements IExecutablePageStateAudit {
 		String ada_compliance = "There are no ADA compliance requirements for this category.";
 		
 		for(Sentence sentence : sentences) {
-			String sentenceText = sentence.getText().getContent();
+			String sentenceText = sentence != null && sentence.getText() != null ? sentence.getText().getContent() : null;
 			String[] words = sentenceText == null || sentenceText.isBlank() ? new String[0] : sentenceText.trim().split("\\s+");
 			
 			if(words.length > 25) {

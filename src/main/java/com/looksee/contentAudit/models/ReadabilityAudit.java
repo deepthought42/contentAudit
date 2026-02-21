@@ -482,7 +482,7 @@ public class ReadabilityAudit implements IExecutablePageStateAudit {
 	 */
 	public static Score calculateSentenceScore(String sentence) {
 		//    		for each sentence check that sentence is no longer than 20 words
-		String[] words = sentence == null ? new String[0] : sentence.trim().split("\\s+");
+		String[] words = sentence == null || sentence.isBlank() ? new String[0] : sentence.trim().split("\\s+");
 		
 		if(words.length <= 10) {
 			return new Score(2, 2, new HashSet<>());
