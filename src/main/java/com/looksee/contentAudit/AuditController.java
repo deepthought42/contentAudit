@@ -127,9 +127,9 @@ public class AuditController {
 			return acknowledgeInvalidMessage("Invalid pubsub message format");
 		}
 
-		if (audit_record_msg.getPageAuditId() == null || audit_record_msg.getPageAuditId().isBlank()) {
-			log.warn("pageAuditId missing from pubsub message");
-			return acknowledgeInvalidMessage("Missing pageAuditId");
+		if (audit_record_msg.getPageAuditId() <= 0) {
+			log.warn("invalid pageAuditId in pubsub message: {}", audit_record_msg.getPageAuditId());
+			return acknowledgeInvalidMessage("Invalid pageAuditId");
 		}
 		
 		try {
