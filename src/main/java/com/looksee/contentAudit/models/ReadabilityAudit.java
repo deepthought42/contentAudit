@@ -146,8 +146,11 @@ public class ReadabilityAudit implements IExecutablePageStateAudit {
 			for(ElementState element: page_state.getElements()) {
 				if(element.getName().contentEquals("button")
 						|| element.getName().contentEquals("a")
-						|| (element.getOwnedText() == null || element.getOwnedText().isEmpty())
-						|| element.getAllText().split(" ").length <= 3
+						|| element.getOwnedText() == null
+						|| element.getOwnedText().isBlank()
+						|| element.getAllText() == null
+						|| element.getAllText().isBlank()
+						|| countWords(element.getAllText()) <= 3
 				) {
 					continue;
 				}
@@ -156,15 +159,20 @@ public class ReadabilityAudit implements IExecutablePageStateAudit {
 					if(element2.getKey().contentEquals(element.getKey())) {
 						continue;
 					}
-					if(!element2.getOwnedText().isEmpty()
+					if(element2.getOwnedText() != null
+							&& !element2.getOwnedText().isBlank()
+							&& element2.getAllText() != null
+							&& element.getAllText() != null
 							&& element2.getAllText().contains(element.getAllText())
 							&& !element2.getAllText().contentEquals(element.getAllText())
 					) {
 						is_child_text = true;
 						break;
 					}
-					else if(element2.getAllText().contentEquals(element.getAllText())
-							&& !element2.getXpath().contains(element.getXpath())
+					else if(element2.getAllText() != null
+							&& element.getAllText() != null
+							&& element2.getAllText().contentEquals(element.getAllText())
+							&& !xpathContains(element2.getXpath(), element.getXpath())
 					) {
 						is_child_text = true;
 						break;
@@ -172,7 +180,7 @@ public class ReadabilityAudit implements IExecutablePageStateAudit {
 				}
 				
 				if(!is_child_text) {
-					if(element.getAllText().split(" ").length > 3){
+					if(countWords(element.getAllText()) > 3){
 						og_text_elements.add(element);
 					}
 				}
@@ -192,13 +200,13 @@ public class ReadabilityAudit implements IExecutablePageStateAudit {
 		
 					int element_points = getPointsForEducationLevel(ease_of_reading_score, audit_record.getTargetUserEducation());
 		
-					if(element.getAllText().split(" ").length < 10) {
+					if(countWords(element.getAllText()) < 10) {
 						element_points = 4;
 					}
 					
 					if(element_points < 4) {
 						String title = "Content is written at " + grade_level + " reading level";
-						String description = generateIssueDescription(element, difficulty_string, ease_of_reading_score, audit_record.getTargetUserEducation());
+						String description = generateIssueDescription(element, difficulty_string, audit_record.getTargetUserEducation());
 						String recommendation = "Reduce the length of your sentences by breaking longer sentences into 2 or more shorter sentences. You can also use simpler words. Words that contain many syllables can also be difficult to understand.";
 						
 						ReadingComplexityIssueMessage issue_message = new ReadingComplexityIssueMessage(Priority.LOW, 
@@ -220,12 +228,12 @@ public class ReadabilityAudit implements IExecutablePageStateAudit {
 					else {
 						String recommendation = "";
 						String description = "";
-						if(element.getAllText().split(" ").length < 10) {
+						if(countWords(element.getAllText()) < 10) {
 							element_points = 4;
 							description = "Content is short enough to be easily understood by all users";
 						}
 						else {
-							description = generateIssueDescription(element, difficulty_string, ease_of_reading_score, audit_record.getTargetUserEducation());
+							description = generateIssueDescription(element, difficulty_string, audit_record.getTargetUserEducation());
 						}
 						String title = "Content is easy to read";
 						
@@ -246,7 +254,7 @@ public class ReadabilityAudit implements IExecutablePageStateAudit {
 						issue_messages.add(issue_message);
 					}
 				} catch(Exception e) {
-					e.printStackTrace();
+					log.warn("error calculating readability for element {}", element.getId(), e);
 				}
 			}
 
@@ -280,26 +288,24 @@ public class ReadabilityAudit implements IExecutablePageStateAudit {
 			return audit_service.save(audit);
 		}
 		catch(Exception e){
-			e.printStackTrace();
+			log.error("readability audit failed", e);
 			throw e;
 		}
 	}
 
 	/**
 	 * Generates a description of the issue based on the element, difficulty string,
-	 * ease of reading score, and target user education.
+	 * and target user education.
 	 * @param element The element that is being audited
 	 * @param difficulty_string The difficulty string of the element
-	 * @param ease_of_reading_score The ease of reading score of the element
 	 * @param targetUserEducation The target user education of the element
 	 * @return A description of the issue based on the element, difficulty string,
-	 * ease of reading score, and target user education.
+	 * and target user education.
 	 */
 	private String generateIssueDescription(ElementState element,
-											String difficulty_string,
-											double ease_of_reading_score,
-											String targetUserEducation) {
-		String description = "The text \"" + element.getAllText() + "\" is " + difficulty_string + " to read for "+getConsumerType(targetUserEducation);
+									String difficulty_string,
+									String targetUserEducation) {
+		String description = "The text \"" + element.getAllText() + "\" is " + difficulty_string + " to read for " + getConsumerType(targetUserEducation) + ".";
 		
 		return description;
 	}
@@ -444,10 +450,26 @@ public class ReadabilityAudit implements IExecutablePageStateAudit {
 			else {
 				element_points = 0;
 			}
-			element_points = 0;
 		}
 		
 		return element_points;
+	}
+
+
+	private static int countWords(String text) {
+		if (text == null || text.isBlank()) {
+			return 0;
+		}
+
+		return text.trim().split("\\s+").length;
+	}
+
+	private static boolean xpathContains(String parentXpath, String childXpath) {
+		if (parentXpath == null || childXpath == null) {
+			return false;
+		}
+
+		return parentXpath.contains(childXpath);
 	}
 
 	/**
@@ -460,7 +482,7 @@ public class ReadabilityAudit implements IExecutablePageStateAudit {
 	 */
 	public static Score calculateSentenceScore(String sentence) {
 		//    		for each sentence check that sentence is no longer than 20 words
-		String[] words = sentence.split(" ");
+		String[] words = sentence == null || sentence.isBlank() ? new String[0] : sentence.trim().split("\\s+");
 		
 		if(words.length <= 10) {
 			return new Score(2, 2, new HashSet<>());
