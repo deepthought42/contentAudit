@@ -195,6 +195,10 @@ public class AuditController {
 		try {
 			String audit_record_json = mapper.writeValueAsString(audit_update);
 			audit_update_topic.publish(audit_record_json);
+		} catch (InterruptedException e) {
+			Thread.currentThread().interrupt();
+			log.error("interrupted while publishing audit progress update", e);
+			return new ResponseEntity<String>("Error publishing audit progress", HttpStatus.INTERNAL_SERVER_ERROR);
 		} catch (JsonProcessingException | java.util.concurrent.ExecutionException e) {
 			log.error("failed to publish audit progress update", e);
 			return new ResponseEntity<String>("Error publishing audit progress", HttpStatus.INTERNAL_SERVER_ERROR);
