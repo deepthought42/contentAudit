@@ -186,14 +186,19 @@ public class AuditController {
 
 		JsonMapper mapper = JsonMapper.builder().addModule(new JavaTimeModule()).build();
 		AuditProgressUpdate audit_update = new AuditProgressUpdate(audit_record_msg.getAccountId(),
-															1.0, 
-															"Content Audit Complete!",
-																	AuditCategory.CONTENT,
-																	AuditLevel.PAGE,
-																	audit_record_msg.getPageAuditId());
+												1.0, 
+												"Content Audit Complete!",
+														AuditCategory.CONTENT,
+														AuditLevel.PAGE,
+														audit_record_msg.getPageAuditId());
 
-		String audit_record_json = mapper.writeValueAsString(audit_update);
-		audit_update_topic.publish(audit_record_json);
+		try {
+			String audit_record_json = mapper.writeValueAsString(audit_update);
+			audit_update_topic.publish(audit_record_json);
+		} catch (JsonProcessingException | java.util.concurrent.ExecutionException e) {
+			log.error("failed to publish audit progress update", e);
+			return new ResponseEntity<String>("Error publishing audit progress", HttpStatus.INTERNAL_SERVER_ERROR);
+		}
 
 		return new ResponseEntity<String>("Successfully completed content audit", HttpStatus.OK);
 	}
