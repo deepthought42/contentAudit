@@ -18,8 +18,8 @@ package com.looksee.contentAudit;
 // [START cloudrun_pubsub_handler]
 // [START run_pubsub_handler]
 import java.util.Base64;
+import java.util.Optional;
 import java.util.Set;
-import java.util.concurrent.ExecutionException;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -32,7 +32,6 @@ import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.bind.annotation.RestController;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
-import com.fasterxml.jackson.databind.JsonMappingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.json.JsonMapper;
 import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule;
@@ -102,27 +101,45 @@ public class AuditController {
 	 *
 	 * @param body the body of the message containing the audit record and page state
 	 * @return ResponseEntity containing the result of the audit
-	 * @throws JsonMappingException if there is an error mapping the JSON data
-	 * @throws JsonProcessingException if there is an error processing the JSON data
-	 * @throws ExecutionException if the execution of the audit fails
-	 * @throws InterruptedException if the thread is interrupted while waiting for the audit to complete
 	 */
 	@RequestMapping(value = "/", method = RequestMethod.POST)
-	public ResponseEntity<String> receiveMessage(@RequestBody Body body)
-		throws JsonMappingException, JsonProcessingException, ExecutionException, InterruptedException
-	{
+	public ResponseEntity<String> receiveMessage(@RequestBody Body body) {
+		if (body == null || body.getMessage() == null || body.getMessage().getData() == null) {
+			log.warn("invalid pubsub payload received");
+			return acknowledgeInvalidMessage("Invalid pubsub payload");
+		}
+
 		Body.Message message = body.getMessage();
 		String data = message.getData();
-		String target = !data.isEmpty() ? new String(Base64.getDecoder().decode(data)) : "";
-        log.warn("page audit msg received = "+target);
+		if (data.isBlank()) {
+			log.warn("received empty pubsub payload data");
+			return acknowledgeInvalidMessage("Empty pubsub payload data");
+		}
 
-		ObjectMapper input_mapper = new ObjectMapper();
-		PageAuditMessage audit_record_msg = input_mapper.readValue(target, PageAuditMessage.class);
+		PageAuditMessage audit_record_msg;
+		try {
+			String target = new String(Base64.getDecoder().decode(data));
+			ObjectMapper input_mapper = new ObjectMapper();
+			audit_record_msg = input_mapper.readValue(target, PageAuditMessage.class);
+		} catch (IllegalArgumentException | JsonProcessingException e) {
+			log.warn("invalid pubsub message format", e);
+			return acknowledgeInvalidMessage("Invalid pubsub message format");
+		}
 		
 		try {
-			AuditRecord audit_record = audit_record_service.findById(audit_record_msg.getPageAuditId()).get();
+			Optional<AuditRecord> audit_record_optional = audit_record_service.findById(audit_record_msg.getPageAuditId());
+			if (audit_record_optional.isEmpty()) {
+				log.warn("audit record not found for page audit id {}", audit_record_msg.getPageAuditId());
+				return acknowledgeInvalidMessage("Audit record not found");
+			}
+
+			AuditRecord audit_record = audit_record_optional.get();
 			//PageState page = page_state_service.findById(audit_record_msg.getPageId()).get();
 			PageState page = page_state_service.findByAuditRecordId(audit_record_msg.getPageAuditId());
+			if (page == null) {
+				log.warn("page state not found for page audit id {}", audit_record_msg.getPageAuditId());
+				return acknowledgeInvalidMessage("Page state not found");
+			}
 			page.setElements(page_state_service.getElementStates(page.getId()));
 			log.warn("evaluating "+page.getElements().size()+" element state for content audit with page ID :: "+page.getId());
 			Set<Audit> audits = audit_record_service.getAllAudits(audit_record.getId());
@@ -157,21 +174,14 @@ public class AuditController {
 				audit_record_service.addAudit(audit_record_msg.getPageAuditId(), paragraph_audit.getId());
 			}
 		} catch (Exception e) {
-			log.error("exception caught during content audit");
-			e.printStackTrace();
-			log.error("-------------------------------------------------------------");
-			log.error("-------------------------------------------------------------");
-			log.error("THERE WAS AN ISSUE DURING CONTENT AUDIT");
-			log.error("-------------------------------------------------------------");
-			log.error("-------------------------------------------------------------");
-			
+			log.error("exception caught during content audit", e);
 			return new ResponseEntity<String>("Error performing content audit", HttpStatus.INTERNAL_SERVER_ERROR);
 		}
 
 		JsonMapper mapper = JsonMapper.builder().addModule(new JavaTimeModule()).build();
 		AuditProgressUpdate audit_update = new AuditProgressUpdate(audit_record_msg.getAccountId(),
 															1.0, 
-															"Content Audit Compelete!",
+															"Content Audit Complete!",
 																	AuditCategory.CONTENT,
 																	AuditLevel.PAGE,
 																	audit_record_msg.getPageAuditId());
@@ -194,6 +204,11 @@ public class AuditController {
 	 * @pre audits != null
 	 * @pre audit_name != null
 	 */
+
+	private ResponseEntity<String> acknowledgeInvalidMessage(String reason) {
+		return new ResponseEntity<String>(reason, HttpStatus.OK);
+	}
+
 	private boolean auditAlreadyExists(Set<Audit> audits, AuditName audit_name) {
 		assert audits != null;
 		assert audit_name != null;

@@ -117,11 +117,15 @@ public class ParagraphingAudit implements IExecutablePageStateAudit {
 		
 		for(ElementState element : element_list) {
 			String text_block = element.getOwnedText();
+			if(text_block == null || text_block.isBlank()) {
+				continue;
+			}
 			
 			//    parse text block into paragraph chunks(multiple paragraphs can exist in a text block)
 			String[] paragraphs = text_block.split("\n");
 			for(String paragraph : paragraphs) {
-				if(paragraph.split(" ").length < 3) {
+				paragraph = paragraph.trim();
+				if(paragraph.isEmpty() || paragraph.split("\\s+").length < 3) {
 					continue;
 				}
 				else if(!paragraph.contains(".")) {
@@ -133,8 +137,7 @@ public class ParagraphingAudit implements IExecutablePageStateAudit {
 
 					issue_messages.addAll(score.getIssueMessages());
 				} catch (Exception e) {
-					log.warn("error getting sentences from text :: "+paragraph);
-					//e.printStackTrace();
+					log.warn("error getting sentences from text :: {}", paragraph, e);
 				}
 
 			}
@@ -209,7 +212,8 @@ public class ParagraphingAudit implements IExecutablePageStateAudit {
 		String ada_compliance = "There are no ADA compliance requirements for this category.";
 		
 		for(Sentence sentence : sentences) {
-			String[] words = sentence.getText().getContent().split(" ");
+			String sentenceText = sentence.getText().getContent();
+			String[] words = sentenceText == null || sentenceText.isBlank() ? new String[0] : sentenceText.trim().split("\\s+");
 			
 			if(words.length > 25) {
 
