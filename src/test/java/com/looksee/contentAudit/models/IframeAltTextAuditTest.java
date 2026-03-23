@@ -111,9 +111,7 @@ public class IframeAltTextAuditTest {
 	}
 
 	@Test
-	public void executeWithIframeMissingTitleAttributeScoresFullPoints() {
-		// The code checks: hasAttr("title") && attr("title").isEmpty() -> violation
-		// Otherwise -> compliance. So no title attribute means compliance branch.
+	public void executeWithIframeMissingTitleAttributeScoresZero() {
 		PageState pageState = mock(PageState.class);
 		Set<ElementState> elements = new HashSet<>();
 
@@ -129,7 +127,7 @@ public class IframeAltTextAuditTest {
 		Audit result = audit.execute(pageState, mock(AuditRecord.class), null);
 
 		assertNotNull(result);
-		assertEquals(1, result.getPoints());
+		assertEquals(0, result.getPoints());
 		assertEquals(1, result.getMaxPoints());
 	}
 
