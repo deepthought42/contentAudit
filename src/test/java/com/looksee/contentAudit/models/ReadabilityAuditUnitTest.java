@@ -19,8 +19,8 @@ public class ReadabilityAuditUnitTest {
 	public void calculateSentenceScoreReturnsFullPointsForShortSentence() {
 		Score score = ReadabilityAudit.calculateSentenceScore("This sentence has only a few words.");
 
-		assertEquals(2, score.getPoints());
-		assertEquals(2, score.getMaxPoints());
+		assertEquals(2, score.getPointsAchieved());
+		assertEquals(2, score.getMaxPossiblePoints());
 		assertTrue(score.getIssueMessages().isEmpty());
 	}
 
@@ -29,8 +29,8 @@ public class ReadabilityAuditUnitTest {
 		Score score = ReadabilityAudit.calculateSentenceScore(
 			"This sentence has more than ten words but remains short enough to avoid the longest penalty tier.");
 
-		assertEquals(1, score.getPoints());
-		assertEquals(2, score.getMaxPoints());
+		assertEquals(1, score.getPointsAchieved());
+		assertEquals(2, score.getMaxPossiblePoints());
 	}
 
 	@Test
@@ -38,40 +38,40 @@ public class ReadabilityAuditUnitTest {
 		Score score = ReadabilityAudit.calculateSentenceScore(
 			"This sentence intentionally includes enough additional words to ensure it exceeds twenty words and is scored in the lowest readability sentence scoring category.");
 
-		assertEquals(0, score.getPoints());
-		assertEquals(2, score.getMaxPoints());
+		assertEquals(0, score.getPointsAchieved());
+		assertEquals(2, score.getMaxPossiblePoints());
 	}
 
 	@Test
 	public void calculateSentenceScoreReturnsFullPointsForNullInput() {
 		Score score = ReadabilityAudit.calculateSentenceScore(null);
 
-		assertEquals(2, score.getPoints());
-		assertEquals(2, score.getMaxPoints());
+		assertEquals(2, score.getPointsAchieved());
+		assertEquals(2, score.getMaxPossiblePoints());
 	}
 
 	@Test
 	public void calculateSentenceScoreReturnsFullPointsForBlankInput() {
 		Score score = ReadabilityAudit.calculateSentenceScore("   ");
 
-		assertEquals(2, score.getPoints());
-		assertEquals(2, score.getMaxPoints());
+		assertEquals(2, score.getPointsAchieved());
+		assertEquals(2, score.getMaxPossiblePoints());
 	}
 
 	@Test
 	public void calculateSentenceScoreReturnsFullPointsForExactlyTenWords() {
 		Score score = ReadabilityAudit.calculateSentenceScore("one two three four five six seven eight nine ten");
 
-		assertEquals(2, score.getPoints());
-		assertEquals(2, score.getMaxPoints());
+		assertEquals(2, score.getPointsAchieved());
+		assertEquals(2, score.getMaxPossiblePoints());
 	}
 
 	@Test
 	public void calculateSentenceScoreReturnsPartialForElevenWords() {
 		Score score = ReadabilityAudit.calculateSentenceScore("one two three four five six seven eight nine ten eleven");
 
-		assertEquals(1, score.getPoints());
-		assertEquals(2, score.getMaxPoints());
+		assertEquals(1, score.getPointsAchieved());
+		assertEquals(2, score.getMaxPossiblePoints());
 	}
 
 	@Test
@@ -79,8 +79,8 @@ public class ReadabilityAuditUnitTest {
 		Score score = ReadabilityAudit.calculateSentenceScore(
 			"one two three four five six seven eight nine ten eleven twelve thirteen fourteen fifteen sixteen seventeen eighteen nineteen twenty");
 
-		assertEquals(1, score.getPoints());
-		assertEquals(2, score.getMaxPoints());
+		assertEquals(1, score.getPointsAchieved());
+		assertEquals(2, score.getMaxPossiblePoints());
 	}
 
 	@Test
@@ -88,31 +88,31 @@ public class ReadabilityAuditUnitTest {
 		Score score = ReadabilityAudit.calculateSentenceScore(
 			"one two three four five six seven eight nine ten eleven twelve thirteen fourteen fifteen sixteen seventeen eighteen nineteen twenty twentyone");
 
-		assertEquals(0, score.getPoints());
-		assertEquals(2, score.getMaxPoints());
+		assertEquals(0, score.getPointsAchieved());
+		assertEquals(2, score.getMaxPossiblePoints());
 	}
 
 	@Test
 	public void calculateParagraphScoreReturnsExpectedValues() {
-		assertEquals(1, ReadabilityAudit.calculateParagraphScore(5).getPoints());
-		assertEquals(0, ReadabilityAudit.calculateParagraphScore(6).getPoints());
+		assertEquals(1, ReadabilityAudit.calculateParagraphScore(5).getPointsAchieved());
+		assertEquals(0, ReadabilityAudit.calculateParagraphScore(6).getPointsAchieved());
 	}
 
 	@Test
 	public void calculateParagraphScoreReturnsOneForZeroSentences() {
-		assertEquals(1, ReadabilityAudit.calculateParagraphScore(0).getPoints());
-		assertEquals(1, ReadabilityAudit.calculateParagraphScore(0).getMaxPoints());
+		assertEquals(1, ReadabilityAudit.calculateParagraphScore(0).getPointsAchieved());
+		assertEquals(1, ReadabilityAudit.calculateParagraphScore(0).getMaxPossiblePoints());
 	}
 
 	@Test
 	public void calculateParagraphScoreReturnsOneForOneSentence() {
-		assertEquals(1, ReadabilityAudit.calculateParagraphScore(1).getPoints());
+		assertEquals(1, ReadabilityAudit.calculateParagraphScore(1).getPointsAchieved());
 	}
 
 	@Test
 	public void calculateParagraphScoreReturnsZeroForManySentences() {
-		assertEquals(0, ReadabilityAudit.calculateParagraphScore(100).getPoints());
-		assertEquals(1, ReadabilityAudit.calculateParagraphScore(100).getMaxPoints());
+		assertEquals(0, ReadabilityAudit.calculateParagraphScore(100).getPointsAchieved());
+		assertEquals(1, ReadabilityAudit.calculateParagraphScore(100).getMaxPossiblePoints());
 	}
 
 	@Test
