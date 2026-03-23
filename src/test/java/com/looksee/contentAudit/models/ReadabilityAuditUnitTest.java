@@ -162,7 +162,7 @@ public class ReadabilityAuditUnitTest {
 		Method method = ReadabilityAudit.class.getDeclaredMethod("generateIssueDescription", ElementState.class, String.class, String.class);
 		method.setAccessible(true);
 
-		String description = (String) method.invoke(audit, element, "easy", new Object[] { null });
+		String description = (String) method.invoke(audit, new Object[] { element, "easy", null });
 
 		assertTrue(description.contains("Some text"));
 		assertTrue(description.contains("easy"));
