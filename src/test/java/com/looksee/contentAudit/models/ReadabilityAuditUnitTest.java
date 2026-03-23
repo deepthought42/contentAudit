@@ -133,7 +133,7 @@ public class ReadabilityAuditUnitTest {
 
 		Method consumerTypeMethod = ReadabilityAudit.class.getDeclaredMethod("getConsumerType", String.class);
 		consumerTypeMethod.setAccessible(true);
-		assertEquals("the average consumer", consumerTypeMethod.invoke(audit, new Object[] { null }));
+		assertEquals("the average consumer", consumerTypeMethod.invoke(audit, (Object) null));
 		assertEquals("users with a College education", consumerTypeMethod.invoke(audit, "College"));
 	}
 
