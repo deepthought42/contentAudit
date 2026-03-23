@@ -1,6 +1,7 @@
 package com.looksee.contentAudit.models;
 
 import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertTrue;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
@@ -42,9 +43,76 @@ public class ReadabilityAuditUnitTest {
 	}
 
 	@Test
+	public void calculateSentenceScoreReturnsFullPointsForNullInput() {
+		Score score = ReadabilityAudit.calculateSentenceScore(null);
+
+		assertEquals(2, score.getPoints());
+		assertEquals(2, score.getMaxPoints());
+	}
+
+	@Test
+	public void calculateSentenceScoreReturnsFullPointsForBlankInput() {
+		Score score = ReadabilityAudit.calculateSentenceScore("   ");
+
+		assertEquals(2, score.getPoints());
+		assertEquals(2, score.getMaxPoints());
+	}
+
+	@Test
+	public void calculateSentenceScoreReturnsFullPointsForExactlyTenWords() {
+		Score score = ReadabilityAudit.calculateSentenceScore("one two three four five six seven eight nine ten");
+
+		assertEquals(2, score.getPoints());
+		assertEquals(2, score.getMaxPoints());
+	}
+
+	@Test
+	public void calculateSentenceScoreReturnsPartialForElevenWords() {
+		Score score = ReadabilityAudit.calculateSentenceScore("one two three four five six seven eight nine ten eleven");
+
+		assertEquals(1, score.getPoints());
+		assertEquals(2, score.getMaxPoints());
+	}
+
+	@Test
+	public void calculateSentenceScoreReturnsPartialForExactlyTwentyWords() {
+		Score score = ReadabilityAudit.calculateSentenceScore(
+			"one two three four five six seven eight nine ten eleven twelve thirteen fourteen fifteen sixteen seventeen eighteen nineteen twenty");
+
+		assertEquals(1, score.getPoints());
+		assertEquals(2, score.getMaxPoints());
+	}
+
+	@Test
+	public void calculateSentenceScoreReturnsZeroForTwentyOneWords() {
+		Score score = ReadabilityAudit.calculateSentenceScore(
+			"one two three four five six seven eight nine ten eleven twelve thirteen fourteen fifteen sixteen seventeen eighteen nineteen twenty twentyone");
+
+		assertEquals(0, score.getPoints());
+		assertEquals(2, score.getMaxPoints());
+	}
+
+	@Test
 	public void calculateParagraphScoreReturnsExpectedValues() {
 		assertEquals(1, ReadabilityAudit.calculateParagraphScore(5).getPoints());
 		assertEquals(0, ReadabilityAudit.calculateParagraphScore(6).getPoints());
+	}
+
+	@Test
+	public void calculateParagraphScoreReturnsOneForZeroSentences() {
+		assertEquals(1, ReadabilityAudit.calculateParagraphScore(0).getPoints());
+		assertEquals(1, ReadabilityAudit.calculateParagraphScore(0).getMaxPoints());
+	}
+
+	@Test
+	public void calculateParagraphScoreReturnsOneForOneSentence() {
+		assertEquals(1, ReadabilityAudit.calculateParagraphScore(1).getPoints());
+	}
+
+	@Test
+	public void calculateParagraphScoreReturnsZeroForManySentences() {
+		assertEquals(0, ReadabilityAudit.calculateParagraphScore(100).getPoints());
+		assertEquals(1, ReadabilityAudit.calculateParagraphScore(100).getMaxPoints());
 	}
 
 	@Test
@@ -60,6 +128,8 @@ public class ReadabilityAuditUnitTest {
 		Method xpathContainsMethod = ReadabilityAudit.class.getDeclaredMethod("xpathContains", String.class, String.class);
 		xpathContainsMethod.setAccessible(true);
 		assertTrue((Boolean) xpathContainsMethod.invoke(null, "/html/body/div", "body"));
+		assertFalse((Boolean) xpathContainsMethod.invoke(null, null, "body"));
+		assertFalse((Boolean) xpathContainsMethod.invoke(null, "/html/body", null));
 
 		Method consumerTypeMethod = ReadabilityAudit.class.getDeclaredMethod("getConsumerType", String.class);
 		consumerTypeMethod.setAccessible(true);
@@ -84,15 +154,99 @@ public class ReadabilityAuditUnitTest {
 	}
 
 	@Test
+	public void generateIssueDescriptionWithNullEducation() throws Exception {
+		ReadabilityAudit audit = new ReadabilityAudit();
+		ElementState element = mock(ElementState.class);
+		when(element.getAllText()).thenReturn("Some text");
+
+		Method method = ReadabilityAudit.class.getDeclaredMethod("generateIssueDescription", ElementState.class, String.class, String.class);
+		method.setAccessible(true);
+
+		String description = (String) method.invoke(audit, element, "easy", new Object[] { null });
+
+		assertTrue(description.contains("Some text"));
+		assertTrue(description.contains("easy"));
+		assertTrue(description.contains("the average consumer"));
+	}
+
+	@Test
 	public void getPointsForEducationLevelUsesExpectedBands() throws Exception {
 		ReadabilityAudit audit = new ReadabilityAudit();
 		Method method = ReadabilityAudit.class.getDeclaredMethod("getPointsForEducationLevel", double.class, String.class);
 		method.setAccessible(true);
 
+		// 90+ band
 		assertEquals(4, ((Integer) method.invoke(audit, 95.0d, null)).intValue());
+		assertEquals(4, ((Integer) method.invoke(audit, 95.0d, "HS")).intValue());
+		assertEquals(4, ((Integer) method.invoke(audit, 95.0d, "College")).intValue());
 		assertEquals(3, ((Integer) method.invoke(audit, 95.0d, "Advanced")).intValue());
-		assertEquals(2, ((Integer) method.invoke(audit, 65.0d, "HS")).intValue());
+		assertEquals(4, ((Integer) method.invoke(audit, 90.0d, "Other")).intValue());
+
+		// 80-89 band
+		assertEquals(4, ((Integer) method.invoke(audit, 85.0d, null)).intValue());
+		assertEquals(4, ((Integer) method.invoke(audit, 85.0d, "HS")).intValue());
+		assertEquals(4, ((Integer) method.invoke(audit, 85.0d, "College")).intValue());
+		assertEquals(4, ((Integer) method.invoke(audit, 85.0d, "Advanced")).intValue());
+		assertEquals(4, ((Integer) method.invoke(audit, 85.0d, "Other")).intValue());
+
+		// 70-79 band
+		assertEquals(4, ((Integer) method.invoke(audit, 75.0d, null)).intValue());
+		assertEquals(4, ((Integer) method.invoke(audit, 75.0d, "HS")).intValue());
+		assertEquals(4, ((Integer) method.invoke(audit, 75.0d, "College")).intValue());
+		assertEquals(4, ((Integer) method.invoke(audit, 75.0d, "Advanced")).intValue());
+		assertEquals(3, ((Integer) method.invoke(audit, 75.0d, "Other")).intValue());
+
+		// 60-69 band
+		assertEquals(3, ((Integer) method.invoke(audit, 65.0d, null)).intValue());
+		assertEquals(3, ((Integer) method.invoke(audit, 65.0d, "HS")).intValue());
+		assertEquals(4, ((Integer) method.invoke(audit, 65.0d, "College")).intValue());
+		assertEquals(4, ((Integer) method.invoke(audit, 65.0d, "Advanced")).intValue());
+		assertEquals(2, ((Integer) method.invoke(audit, 65.0d, "Other")).intValue());
+
+		// 50-59 band
+		assertEquals(2, ((Integer) method.invoke(audit, 55.0d, null)).intValue());
+		assertEquals(2, ((Integer) method.invoke(audit, 55.0d, "HS")).intValue());
+		assertEquals(3, ((Integer) method.invoke(audit, 55.0d, "College")).intValue());
+		assertEquals(4, ((Integer) method.invoke(audit, 55.0d, "Advanced")).intValue());
+		assertEquals(1, ((Integer) method.invoke(audit, 55.0d, "Other")).intValue());
+
+		// 30-49 band
+		assertEquals(1, ((Integer) method.invoke(audit, 45.0d, null)).intValue());
+		assertEquals(1, ((Integer) method.invoke(audit, 45.0d, "HS")).intValue());
+		assertEquals(2, ((Integer) method.invoke(audit, 45.0d, "College")).intValue());
 		assertEquals(3, ((Integer) method.invoke(audit, 45.0d, "Advanced")).intValue());
+		assertEquals(0, ((Integer) method.invoke(audit, 45.0d, "Other")).intValue());
+
+		// Below 30 band
+		assertEquals(0, ((Integer) method.invoke(audit, 20.0d, null)).intValue());
 		assertEquals(0, ((Integer) method.invoke(audit, 20.0d, "HS")).intValue());
+		assertEquals(1, ((Integer) method.invoke(audit, 20.0d, "College")).intValue());
+		assertEquals(2, ((Integer) method.invoke(audit, 20.0d, "Advanced")).intValue());
+		assertEquals(0, ((Integer) method.invoke(audit, 20.0d, "Other")).intValue());
+	}
+
+	@Test
+	public void countWordsHandlesVariousInputs() throws Exception {
+		Method countWordsMethod = ReadabilityAudit.class.getDeclaredMethod("countWords", String.class);
+		countWordsMethod.setAccessible(true);
+
+		assertEquals(0, ((Integer) countWordsMethod.invoke(null, (String) null)).intValue());
+		assertEquals(0, ((Integer) countWordsMethod.invoke(null, "")).intValue());
+		assertEquals(0, ((Integer) countWordsMethod.invoke(null, "   ")).intValue());
+		assertEquals(1, ((Integer) countWordsMethod.invoke(null, "hello")).intValue());
+		assertEquals(5, ((Integer) countWordsMethod.invoke(null, "The quick brown fox jumps")).intValue());
+		assertEquals(3, ((Integer) countWordsMethod.invoke(null, "  multiple   spaces   here  ")).intValue());
+	}
+
+	@Test
+	public void xpathContainsHandlesNullInputs() throws Exception {
+		Method xpathContainsMethod = ReadabilityAudit.class.getDeclaredMethod("xpathContains", String.class, String.class);
+		xpathContainsMethod.setAccessible(true);
+
+		assertFalse((Boolean) xpathContainsMethod.invoke(null, null, null));
+		assertFalse((Boolean) xpathContainsMethod.invoke(null, null, "/html"));
+		assertFalse((Boolean) xpathContainsMethod.invoke(null, "/html/body", null));
+		assertTrue((Boolean) xpathContainsMethod.invoke(null, "/html/body/div", "/html/body"));
+		assertFalse((Boolean) xpathContainsMethod.invoke(null, "/html/body", "/html/body/div"));
 	}
 }
