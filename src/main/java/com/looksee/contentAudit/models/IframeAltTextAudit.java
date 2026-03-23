@@ -131,7 +131,7 @@ public class IframeAltTextAudit implements IExecutablePageStateAudit {
 			Document jsoup_doc = Jsoup.parseBodyFragment(iframe_element.getAllText(), page_state.getUrl());
 			Element element = jsoup_doc.getElementsByTag(iframe_element.getName()).first();
 
-			if(element.hasAttr("title") && element.attr("title").isEmpty()){
+			if(!element.hasAttr("title") || element.attr("title").isEmpty()){
 				String title = "Iframe does not have title";
 				String description = "Iframe does not have title";
 				
