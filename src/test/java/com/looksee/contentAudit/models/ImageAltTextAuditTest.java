@@ -8,8 +8,8 @@ import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
 import java.lang.reflect.Field;
-import java.util.HashSet;
-import java.util.Set;
+import java.util.ArrayList;
+import java.util.List;
 
 import org.junit.Before;
 import org.junit.Test;
@@ -52,7 +52,7 @@ public class ImageAltTextAuditTest {
 	@Test
 	public void executeWithNoMatchingElementsReturnsZeroScoreAudit() {
 		PageState pageState = mock(PageState.class);
-		Set<ElementState> elements = new HashSet<>();
+		List<ElementState> elements = new ArrayList<>();
 		ElementState divElement = mock(ElementState.class);
 		when(divElement.getName()).thenReturn("div");
 		elements.add(divElement);
@@ -66,13 +66,13 @@ public class ImageAltTextAuditTest {
 		assertEquals(AuditSubcategory.IMAGERY, result.getSubcategory());
 		assertEquals(AuditName.ALT_TEXT, result.getName());
 		assertEquals(0, result.getPoints());
-		assertEquals(0, result.getMaxPoints());
+		assertEquals(0, result.getTotalPossiblePoints());
 	}
 
 	@Test
 	public void executeWithAreaElementHavingAltAttributeScoresFullPoints() {
 		PageState pageState = mock(PageState.class);
-		Set<ElementState> elements = new HashSet<>();
+		List<ElementState> elements = new ArrayList<>();
 
 		ElementState areaElement = mock(ElementState.class);
 		when(areaElement.getName()).thenReturn("area");
@@ -87,13 +87,13 @@ public class ImageAltTextAuditTest {
 
 		assertNotNull(result);
 		assertEquals(1, result.getPoints());
-		assertEquals(1, result.getMaxPoints());
+		assertEquals(1, result.getTotalPossiblePoints());
 	}
 
 	@Test
 	public void executeWithInputElementHavingEmptyAltAttributeScoresZero() {
 		PageState pageState = mock(PageState.class);
-		Set<ElementState> elements = new HashSet<>();
+		List<ElementState> elements = new ArrayList<>();
 
 		ElementState inputElement = mock(ElementState.class);
 		when(inputElement.getName()).thenReturn("input");
@@ -108,13 +108,13 @@ public class ImageAltTextAuditTest {
 
 		assertNotNull(result);
 		assertEquals(0, result.getPoints());
-		assertEquals(1, result.getMaxPoints());
+		assertEquals(1, result.getTotalPossiblePoints());
 	}
 
 	@Test
 	public void executeWithEmbedElementMissingAltAttributeScoresZero() {
 		PageState pageState = mock(PageState.class);
-		Set<ElementState> elements = new HashSet<>();
+		List<ElementState> elements = new ArrayList<>();
 
 		ElementState embedElement = mock(ElementState.class);
 		when(embedElement.getName()).thenReturn("embed");
@@ -129,13 +129,13 @@ public class ImageAltTextAuditTest {
 
 		assertNotNull(result);
 		assertEquals(0, result.getPoints());
-		assertEquals(1, result.getMaxPoints());
+		assertEquals(1, result.getTotalPossiblePoints());
 	}
 
 	@Test
 	public void executeFiltersOnlyAreaInputEmbedElements() {
 		PageState pageState = mock(PageState.class);
-		Set<ElementState> elements = new HashSet<>();
+		List<ElementState> elements = new ArrayList<>();
 
 		ElementState areaElement = mock(ElementState.class);
 		when(areaElement.getName()).thenReturn("area");
@@ -157,13 +157,13 @@ public class ImageAltTextAuditTest {
 		Audit result = audit.execute(pageState, mock(AuditRecord.class), null);
 
 		assertEquals(1, result.getPoints());
-		assertEquals(1, result.getMaxPoints());
+		assertEquals(1, result.getTotalPossiblePoints());
 	}
 
 	@Test
 	public void executeWithMultipleElementsMixedCompliance() {
 		PageState pageState = mock(PageState.class);
-		Set<ElementState> elements = new HashSet<>();
+		List<ElementState> elements = new ArrayList<>();
 
 		ElementState areaWithAlt = mock(ElementState.class);
 		when(areaWithAlt.getName()).thenReturn("area");
@@ -183,6 +183,6 @@ public class ImageAltTextAuditTest {
 		Audit result = audit.execute(pageState, mock(AuditRecord.class), null);
 
 		assertNotNull(result);
-		assertEquals(2, result.getMaxPoints());
+		assertEquals(2, result.getTotalPossiblePoints());
 	}
 }

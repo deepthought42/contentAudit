@@ -7,8 +7,8 @@ import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
 import java.lang.reflect.Field;
-import java.util.HashSet;
-import java.util.Set;
+import java.util.ArrayList;
+import java.util.List;
 
 import org.junit.Before;
 import org.junit.Test;
@@ -51,7 +51,7 @@ public class ObjectAltTextAuditTest {
 	@Test
 	public void executeWithNoObjectOrCanvasElementsReturnsZeroScoreAudit() {
 		PageState pageState = mock(PageState.class);
-		Set<ElementState> elements = new HashSet<>();
+		List<ElementState> elements = new ArrayList<>();
 		ElementState divElement = mock(ElementState.class);
 		when(divElement.getName()).thenReturn("div");
 		elements.add(divElement);
@@ -65,13 +65,13 @@ public class ObjectAltTextAuditTest {
 		assertEquals(AuditSubcategory.IMAGERY, result.getSubcategory());
 		assertEquals(AuditName.ALT_TEXT, result.getName());
 		assertEquals(0, result.getPoints());
-		assertEquals(0, result.getMaxPoints());
+		assertEquals(0, result.getTotalPossiblePoints());
 	}
 
 	@Test
 	public void executeWithObjectHavingTextContentScoresFullPoints() {
 		PageState pageState = mock(PageState.class);
-		Set<ElementState> elements = new HashSet<>();
+		List<ElementState> elements = new ArrayList<>();
 
 		ElementState objectElement = mock(ElementState.class);
 		when(objectElement.getName()).thenReturn("object");
@@ -86,13 +86,13 @@ public class ObjectAltTextAuditTest {
 
 		assertNotNull(result);
 		assertEquals(1, result.getPoints());
-		assertEquals(1, result.getMaxPoints());
+		assertEquals(1, result.getTotalPossiblePoints());
 	}
 
 	@Test
 	public void executeWithObjectHavingLinkElementScoresFullPoints() {
 		PageState pageState = mock(PageState.class);
-		Set<ElementState> elements = new HashSet<>();
+		List<ElementState> elements = new ArrayList<>();
 
 		ElementState objectElement = mock(ElementState.class);
 		when(objectElement.getName()).thenReturn("object");
@@ -107,13 +107,13 @@ public class ObjectAltTextAuditTest {
 
 		assertNotNull(result);
 		assertEquals(1, result.getPoints());
-		assertEquals(1, result.getMaxPoints());
+		assertEquals(1, result.getTotalPossiblePoints());
 	}
 
 	@Test
 	public void executeWithObjectHavingNoTextAndNoLinkScoresZero() {
 		PageState pageState = mock(PageState.class);
-		Set<ElementState> elements = new HashSet<>();
+		List<ElementState> elements = new ArrayList<>();
 
 		ElementState objectElement = mock(ElementState.class);
 		when(objectElement.getName()).thenReturn("object");
@@ -128,13 +128,13 @@ public class ObjectAltTextAuditTest {
 
 		assertNotNull(result);
 		assertEquals(0, result.getPoints());
-		assertEquals(1, result.getMaxPoints());
+		assertEquals(1, result.getTotalPossiblePoints());
 	}
 
 	@Test
 	public void executeFiltersObjectAndCanvasElements() {
 		PageState pageState = mock(PageState.class);
-		Set<ElementState> elements = new HashSet<>();
+		List<ElementState> elements = new ArrayList<>();
 
 		ElementState objectElement = mock(ElementState.class);
 		when(objectElement.getName()).thenReturn("object");
@@ -158,13 +158,13 @@ public class ObjectAltTextAuditTest {
 		Audit result = audit.execute(pageState, mock(AuditRecord.class), null);
 
 		assertEquals(2, result.getPoints());
-		assertEquals(2, result.getMaxPoints());
+		assertEquals(2, result.getTotalPossiblePoints());
 	}
 
 	@Test
 	public void executeWithCanvasHavingNoTextAndNoLinkScoresZero() {
 		PageState pageState = mock(PageState.class);
-		Set<ElementState> elements = new HashSet<>();
+		List<ElementState> elements = new ArrayList<>();
 
 		ElementState canvasElement = mock(ElementState.class);
 		when(canvasElement.getName()).thenReturn("canvas");
@@ -179,6 +179,6 @@ public class ObjectAltTextAuditTest {
 
 		assertNotNull(result);
 		assertEquals(0, result.getPoints());
-		assertEquals(1, result.getMaxPoints());
+		assertEquals(1, result.getTotalPossiblePoints());
 	}
 }

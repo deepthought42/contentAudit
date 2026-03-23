@@ -302,7 +302,7 @@ public class AuditControllerUnitTest {
 
 		PageState pageState = mock(PageState.class);
 		when(pageState.getId()).thenReturn(100L);
-		Set<ElementState> elements = new HashSet<>();
+		List<ElementState> elements = new ArrayList<>();
 		when(pageState.getElements()).thenReturn(elements);
 		when(pageStateService.findByAuditRecordId(42L)).thenReturn(pageState);
 		when(pageStateService.getElementStates(100L)).thenReturn(elements);
@@ -341,7 +341,7 @@ public class AuditControllerUnitTest {
 
 		PageState pageState = mock(PageState.class);
 		when(pageState.getId()).thenReturn(100L);
-		Set<ElementState> elements = new HashSet<>();
+		List<ElementState> elements = new ArrayList<>();
 		when(pageState.getElements()).thenReturn(elements);
 		when(pageStateService.findByAuditRecordId(42L)).thenReturn(pageState);
 		when(pageStateService.getElementStates(100L)).thenReturn(elements);
@@ -382,7 +382,7 @@ public class AuditControllerUnitTest {
 
 		PageState pageState = mock(PageState.class);
 		when(pageState.getId()).thenReturn(100L);
-		Set<ElementState> elements = new HashSet<>();
+		List<ElementState> elements = new ArrayList<>();
 		when(pageState.getElements()).thenReturn(elements);
 		when(pageStateService.findByAuditRecordId(42L)).thenReturn(pageState);
 		when(pageStateService.getElementStates(100L)).thenReturn(elements);

@@ -7,8 +7,8 @@ import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
 import java.lang.reflect.Field;
-import java.util.HashSet;
-import java.util.Set;
+import java.util.ArrayList;
+import java.util.List;
 
 import org.junit.Before;
 import org.junit.Test;
@@ -51,7 +51,7 @@ public class AppletAltTextAuditTest {
 	@Test
 	public void executeWithNoAppletElementsReturnsZeroScoreAudit() {
 		PageState pageState = mock(PageState.class);
-		Set<ElementState> elements = new HashSet<>();
+		List<ElementState> elements = new ArrayList<>();
 		ElementState divElement = mock(ElementState.class);
 		when(divElement.getName()).thenReturn("div");
 		elements.add(divElement);
@@ -65,13 +65,13 @@ public class AppletAltTextAuditTest {
 		assertEquals(AuditSubcategory.IMAGERY, result.getSubcategory());
 		assertEquals(AuditName.ALT_TEXT, result.getName());
 		assertEquals(0, result.getPoints());
-		assertEquals(0, result.getMaxPoints());
+		assertEquals(0, result.getTotalPossiblePoints());
 	}
 
 	@Test
 	public void executeWithAppletHavingAltTagScoresFullPoints() {
 		PageState pageState = mock(PageState.class);
-		Set<ElementState> elements = new HashSet<>();
+		List<ElementState> elements = new ArrayList<>();
 
 		ElementState appletElement = mock(ElementState.class);
 		when(appletElement.getName()).thenReturn("applet");
@@ -86,13 +86,13 @@ public class AppletAltTextAuditTest {
 
 		assertNotNull(result);
 		assertEquals(1, result.getPoints());
-		assertEquals(1, result.getMaxPoints());
+		assertEquals(1, result.getTotalPossiblePoints());
 	}
 
 	@Test
 	public void executeWithAppletMissingAltTagScoresZero() {
 		PageState pageState = mock(PageState.class);
-		Set<ElementState> elements = new HashSet<>();
+		List<ElementState> elements = new ArrayList<>();
 
 		ElementState appletElement = mock(ElementState.class);
 		when(appletElement.getName()).thenReturn("applet");
@@ -107,13 +107,13 @@ public class AppletAltTextAuditTest {
 
 		assertNotNull(result);
 		assertEquals(0, result.getPoints());
-		assertEquals(1, result.getMaxPoints());
+		assertEquals(1, result.getTotalPossiblePoints());
 	}
 
 	@Test
 	public void executeFiltersOnlyAppletElements() {
 		PageState pageState = mock(PageState.class);
-		Set<ElementState> elements = new HashSet<>();
+		List<ElementState> elements = new ArrayList<>();
 
 		ElementState appletElement = mock(ElementState.class);
 		when(appletElement.getName()).thenReturn("applet");
@@ -135,6 +135,6 @@ public class AppletAltTextAuditTest {
 		Audit result = audit.execute(pageState, mock(AuditRecord.class), null);
 
 		assertEquals(1, result.getPoints());
-		assertEquals(1, result.getMaxPoints());
+		assertEquals(1, result.getTotalPossiblePoints());
 	}
 }

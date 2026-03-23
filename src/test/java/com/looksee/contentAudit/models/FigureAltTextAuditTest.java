@@ -7,8 +7,8 @@ import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
 import java.lang.reflect.Field;
-import java.util.HashSet;
-import java.util.Set;
+import java.util.ArrayList;
+import java.util.List;
 
 import org.junit.Before;
 import org.junit.Test;
@@ -51,7 +51,7 @@ public class FigureAltTextAuditTest {
 	@Test
 	public void executeWithNoFigureElementsReturnsZeroScoreAudit() {
 		PageState pageState = mock(PageState.class);
-		Set<ElementState> elements = new HashSet<>();
+		List<ElementState> elements = new ArrayList<>();
 		ElementState divElement = mock(ElementState.class);
 		when(divElement.getName()).thenReturn("div");
 		elements.add(divElement);
@@ -65,13 +65,13 @@ public class FigureAltTextAuditTest {
 		assertEquals(AuditSubcategory.IMAGERY, result.getSubcategory());
 		assertEquals(AuditName.ALT_TEXT, result.getName());
 		assertEquals(0, result.getPoints());
-		assertEquals(0, result.getMaxPoints());
+		assertEquals(0, result.getTotalPossiblePoints());
 	}
 
 	@Test
 	public void executeWithFigureHavingFigcaptionScoresFullPoints() {
 		PageState pageState = mock(PageState.class);
-		Set<ElementState> elements = new HashSet<>();
+		List<ElementState> elements = new ArrayList<>();
 
 		ElementState figureElement = mock(ElementState.class);
 		when(figureElement.getName()).thenReturn("figure");
@@ -86,13 +86,13 @@ public class FigureAltTextAuditTest {
 
 		assertNotNull(result);
 		assertEquals(1, result.getPoints());
-		assertEquals(1, result.getMaxPoints());
+		assertEquals(1, result.getTotalPossiblePoints());
 	}
 
 	@Test
 	public void executeWithFigureMissingFigcaptionScoresZero() {
 		PageState pageState = mock(PageState.class);
-		Set<ElementState> elements = new HashSet<>();
+		List<ElementState> elements = new ArrayList<>();
 
 		ElementState figureElement = mock(ElementState.class);
 		when(figureElement.getName()).thenReturn("figure");
@@ -107,13 +107,13 @@ public class FigureAltTextAuditTest {
 
 		assertNotNull(result);
 		assertEquals(0, result.getPoints());
-		assertEquals(1, result.getMaxPoints());
+		assertEquals(1, result.getTotalPossiblePoints());
 	}
 
 	@Test
 	public void executeWithFigureHavingEmptyFigcaptionScoresZero() {
 		PageState pageState = mock(PageState.class);
-		Set<ElementState> elements = new HashSet<>();
+		List<ElementState> elements = new ArrayList<>();
 
 		ElementState figureElement = mock(ElementState.class);
 		when(figureElement.getName()).thenReturn("figure");
@@ -128,13 +128,13 @@ public class FigureAltTextAuditTest {
 
 		assertNotNull(result);
 		assertEquals(0, result.getPoints());
-		assertEquals(1, result.getMaxPoints());
+		assertEquals(1, result.getTotalPossiblePoints());
 	}
 
 	@Test
 	public void executeFiltersOnlyFigureElements() {
 		PageState pageState = mock(PageState.class);
-		Set<ElementState> elements = new HashSet<>();
+		List<ElementState> elements = new ArrayList<>();
 
 		ElementState figureElement = mock(ElementState.class);
 		when(figureElement.getName()).thenReturn("figure");
@@ -152,6 +152,6 @@ public class FigureAltTextAuditTest {
 		Audit result = audit.execute(pageState, mock(AuditRecord.class), null);
 
 		assertEquals(1, result.getPoints());
-		assertEquals(1, result.getMaxPoints());
+		assertEquals(1, result.getTotalPossiblePoints());
 	}
 }

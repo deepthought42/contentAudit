@@ -7,8 +7,8 @@ import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
 import java.lang.reflect.Field;
-import java.util.HashSet;
-import java.util.Set;
+import java.util.ArrayList;
+import java.util.List;
 
 import org.junit.Before;
 import org.junit.Test;
@@ -51,7 +51,7 @@ public class CanvasAltTextAuditTest {
 	@Test
 	public void executeWithNoVideoOrAudioElementsReturnsZeroScoreAudit() {
 		PageState pageState = mock(PageState.class);
-		Set<ElementState> elements = new HashSet<>();
+		List<ElementState> elements = new ArrayList<>();
 		ElementState divElement = mock(ElementState.class);
 		when(divElement.getName()).thenReturn("div");
 		elements.add(divElement);
@@ -65,13 +65,13 @@ public class CanvasAltTextAuditTest {
 		assertEquals(AuditSubcategory.IMAGERY, result.getSubcategory());
 		assertEquals(AuditName.ALT_TEXT, result.getName());
 		assertEquals(0, result.getPoints());
-		assertEquals(0, result.getMaxPoints());
+		assertEquals(0, result.getTotalPossiblePoints());
 	}
 
 	@Test
 	public void executeWithVideoHavingTrackAndLinkScoresFullPoints() {
 		PageState pageState = mock(PageState.class);
-		Set<ElementState> elements = new HashSet<>();
+		List<ElementState> elements = new ArrayList<>();
 
 		ElementState videoElement = mock(ElementState.class);
 		when(videoElement.getName()).thenReturn("video");
@@ -86,13 +86,13 @@ public class CanvasAltTextAuditTest {
 
 		assertNotNull(result);
 		assertEquals(2, result.getPoints());
-		assertEquals(2, result.getMaxPoints());
+		assertEquals(2, result.getTotalPossiblePoints());
 	}
 
 	@Test
 	public void executeWithVideoMissingTrackScoresPartialPoints() {
 		PageState pageState = mock(PageState.class);
-		Set<ElementState> elements = new HashSet<>();
+		List<ElementState> elements = new ArrayList<>();
 
 		ElementState videoElement = mock(ElementState.class);
 		when(videoElement.getName()).thenReturn("video");
@@ -107,13 +107,13 @@ public class CanvasAltTextAuditTest {
 
 		assertNotNull(result);
 		assertEquals(1, result.getPoints());
-		assertEquals(2, result.getMaxPoints());
+		assertEquals(2, result.getTotalPossiblePoints());
 	}
 
 	@Test
 	public void executeWithVideoMissingLinkScoresPartialPoints() {
 		PageState pageState = mock(PageState.class);
-		Set<ElementState> elements = new HashSet<>();
+		List<ElementState> elements = new ArrayList<>();
 
 		ElementState videoElement = mock(ElementState.class);
 		when(videoElement.getName()).thenReturn("video");
@@ -128,13 +128,13 @@ public class CanvasAltTextAuditTest {
 
 		assertNotNull(result);
 		assertEquals(1, result.getPoints());
-		assertEquals(2, result.getMaxPoints());
+		assertEquals(2, result.getTotalPossiblePoints());
 	}
 
 	@Test
 	public void executeWithVideoMissingBothTrackAndLinkScoresZero() {
 		PageState pageState = mock(PageState.class);
-		Set<ElementState> elements = new HashSet<>();
+		List<ElementState> elements = new ArrayList<>();
 
 		ElementState videoElement = mock(ElementState.class);
 		when(videoElement.getName()).thenReturn("video");
@@ -149,13 +149,13 @@ public class CanvasAltTextAuditTest {
 
 		assertNotNull(result);
 		assertEquals(0, result.getPoints());
-		assertEquals(2, result.getMaxPoints());
+		assertEquals(2, result.getTotalPossiblePoints());
 	}
 
 	@Test
 	public void executeFiltersVideoAndAudioElements() {
 		PageState pageState = mock(PageState.class);
-		Set<ElementState> elements = new HashSet<>();
+		List<ElementState> elements = new ArrayList<>();
 
 		ElementState videoElement = mock(ElementState.class);
 		when(videoElement.getName()).thenReturn("video");
@@ -179,13 +179,13 @@ public class CanvasAltTextAuditTest {
 		Audit result = audit.execute(pageState, mock(AuditRecord.class), null);
 
 		assertEquals(4, result.getPoints());
-		assertEquals(4, result.getMaxPoints());
+		assertEquals(4, result.getTotalPossiblePoints());
 	}
 
 	@Test
 	public void executeWithVideoHavingTrackWithEmptySrcScoresZeroForTrack() {
 		PageState pageState = mock(PageState.class);
-		Set<ElementState> elements = new HashSet<>();
+		List<ElementState> elements = new ArrayList<>();
 
 		ElementState videoElement = mock(ElementState.class);
 		when(videoElement.getName()).thenReturn("video");
@@ -200,6 +200,6 @@ public class CanvasAltTextAuditTest {
 
 		assertNotNull(result);
 		assertEquals(1, result.getPoints());
-		assertEquals(2, result.getMaxPoints());
+		assertEquals(2, result.getTotalPossiblePoints());
 	}
 }

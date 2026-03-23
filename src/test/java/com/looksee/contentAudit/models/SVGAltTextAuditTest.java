@@ -7,8 +7,8 @@ import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
 import java.lang.reflect.Field;
-import java.util.HashSet;
-import java.util.Set;
+import java.util.ArrayList;
+import java.util.List;
 
 import org.junit.Before;
 import org.junit.Test;
@@ -51,7 +51,7 @@ public class SVGAltTextAuditTest {
 	@Test
 	public void executeWithNoSvgElementsReturnsZeroScoreAudit() {
 		PageState pageState = mock(PageState.class);
-		Set<ElementState> elements = new HashSet<>();
+		List<ElementState> elements = new ArrayList<>();
 		ElementState divElement = mock(ElementState.class);
 		when(divElement.getName()).thenReturn("div");
 		elements.add(divElement);
@@ -65,13 +65,13 @@ public class SVGAltTextAuditTest {
 		assertEquals(AuditSubcategory.IMAGERY, result.getSubcategory());
 		assertEquals(AuditName.ALT_TEXT, result.getName());
 		assertEquals(0, result.getPoints());
-		assertEquals(0, result.getMaxPoints());
+		assertEquals(0, result.getTotalPossiblePoints());
 	}
 
 	@Test
 	public void executeWithSvgHavingBothTitleAndDescScoresFullPoints() {
 		PageState pageState = mock(PageState.class);
-		Set<ElementState> elements = new HashSet<>();
+		List<ElementState> elements = new ArrayList<>();
 
 		ElementState svgElement = mock(ElementState.class);
 		when(svgElement.getName()).thenReturn("svg");
@@ -86,13 +86,13 @@ public class SVGAltTextAuditTest {
 
 		assertNotNull(result);
 		assertEquals(2, result.getPoints());
-		assertEquals(2, result.getMaxPoints());
+		assertEquals(2, result.getTotalPossiblePoints());
 	}
 
 	@Test
 	public void executeWithSvgMissingTitleScoresPartialPoints() {
 		PageState pageState = mock(PageState.class);
-		Set<ElementState> elements = new HashSet<>();
+		List<ElementState> elements = new ArrayList<>();
 
 		ElementState svgElement = mock(ElementState.class);
 		when(svgElement.getName()).thenReturn("svg");
@@ -107,13 +107,13 @@ public class SVGAltTextAuditTest {
 
 		assertNotNull(result);
 		assertEquals(1, result.getPoints());
-		assertEquals(2, result.getMaxPoints());
+		assertEquals(2, result.getTotalPossiblePoints());
 	}
 
 	@Test
 	public void executeWithSvgMissingDescScoresPartialPoints() {
 		PageState pageState = mock(PageState.class);
-		Set<ElementState> elements = new HashSet<>();
+		List<ElementState> elements = new ArrayList<>();
 
 		ElementState svgElement = mock(ElementState.class);
 		when(svgElement.getName()).thenReturn("svg");
@@ -128,13 +128,13 @@ public class SVGAltTextAuditTest {
 
 		assertNotNull(result);
 		assertEquals(1, result.getPoints());
-		assertEquals(2, result.getMaxPoints());
+		assertEquals(2, result.getTotalPossiblePoints());
 	}
 
 	@Test
 	public void executeWithSvgMissingBothTitleAndDescScoresZero() {
 		PageState pageState = mock(PageState.class);
-		Set<ElementState> elements = new HashSet<>();
+		List<ElementState> elements = new ArrayList<>();
 
 		ElementState svgElement = mock(ElementState.class);
 		when(svgElement.getName()).thenReturn("svg");
@@ -149,13 +149,13 @@ public class SVGAltTextAuditTest {
 
 		assertNotNull(result);
 		assertEquals(0, result.getPoints());
-		assertEquals(2, result.getMaxPoints());
+		assertEquals(2, result.getTotalPossiblePoints());
 	}
 
 	@Test
 	public void executeWithSvgHavingEmptyTitleAndEmptyDescScoresZero() {
 		PageState pageState = mock(PageState.class);
-		Set<ElementState> elements = new HashSet<>();
+		List<ElementState> elements = new ArrayList<>();
 
 		ElementState svgElement = mock(ElementState.class);
 		when(svgElement.getName()).thenReturn("svg");
@@ -170,6 +170,6 @@ public class SVGAltTextAuditTest {
 
 		assertNotNull(result);
 		assertEquals(0, result.getPoints());
-		assertEquals(2, result.getMaxPoints());
+		assertEquals(2, result.getTotalPossiblePoints());
 	}
 }
