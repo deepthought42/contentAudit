@@ -19,6 +19,7 @@ package com.looksee.contentAudit;
 // [START run_pubsub_handler]
 import java.nio.charset.StandardCharsets;
 import java.util.Base64;
+import java.util.Objects;
 import java.util.Optional;
 import java.util.Set;
 
@@ -59,6 +60,13 @@ import com.looksee.services.PageStateService;
 
 /**
  * API controller that performs a content audit.
+ *
+ * <p><strong>Class Invariants:</strong></p>
+ * <ul>
+ *   <li>All {@code @Autowired} dependencies must be non-null after Spring initialization</li>
+ *   <li>The controller only processes valid Pub/Sub push payloads with base64-encoded {@link PageAuditMessage} JSON</li>
+ *   <li>Invalid or malformed messages are acknowledged with HTTP 200 to prevent Pub/Sub redelivery of poison messages</li>
+ * </ul>
  */
 @RestController
 public class AuditController {
@@ -99,6 +107,21 @@ public class AuditController {
 	
 	/**
 	 * Receives a message from Pub/Sub and performs a content audit on the page.
+	 *
+	 * <p><strong>Preconditions:</strong></p>
+	 * <ul>
+	 *   <li>{@code body} should contain a valid Pub/Sub push payload (null/invalid payloads are handled gracefully)</li>
+	 *   <li>{@code body.getMessage().getData()} should contain base64-encoded {@link PageAuditMessage} JSON</li>
+	 *   <li>The decoded {@code PageAuditMessage} must have a positive {@code pageAuditId}</li>
+	 * </ul>
+	 *
+	 * <p><strong>Postconditions:</strong></p>
+	 * <ul>
+	 *   <li>Returns a non-null {@link ResponseEntity} with HTTP 200 for valid or gracefully-handled invalid messages</li>
+	 *   <li>Returns HTTP 500 only for unexpected internal errors during audit execution</li>
+	 *   <li>On success, all applicable audits (alt text, readability, paragraphing) are persisted and linked to the audit record</li>
+	 *   <li>An {@link AuditProgressUpdate} message is published to notify downstream systems of completion</li>
+	 * </ul>
 	 *
 	 * @param body the body of the message containing the audit record and page state
 	 * @return ResponseEntity containing the result of the audit
@@ -207,25 +230,51 @@ public class AuditController {
 	}
 	
 	/**
-	 * Checks if the any of the provided {@link Audit audits} have a name that matches
-	 * 		the provided {@linkplain AuditName}
+	 * Acknowledges an invalid Pub/Sub message by returning HTTP 200 to prevent redelivery.
 	 *
-	 * @param audits
-	 * @param audit_name
+	 * <p><strong>Preconditions:</strong></p>
+	 * <ul>
+	 *   <li>{@code reason} must not be null</li>
+	 * </ul>
 	 *
-	 * @return
+	 * <p><strong>Postconditions:</strong></p>
+	 * <ul>
+	 *   <li>Returns a non-null {@link ResponseEntity} with HTTP 200 status</li>
+	 * </ul>
 	 *
-	 * @pre audits != null
-	 * @pre audit_name != null
+	 * @param reason the reason the message is invalid, must not be null
+	 * @return ResponseEntity with HTTP 200 and the reason as body
+	 * @throws NullPointerException if {@code reason} is null
 	 */
-
 	private ResponseEntity<String> acknowledgeInvalidMessage(String reason) {
+		Objects.requireNonNull(reason, "reason must not be null");
 		return new ResponseEntity<String>(reason, HttpStatus.OK);
 	}
 
+	/**
+	 * Checks if any of the provided {@link Audit audits} have a name that matches
+	 * the provided {@linkplain AuditName}.
+	 *
+	 * <p><strong>Preconditions:</strong></p>
+	 * <ul>
+	 *   <li>{@code audits} must not be null</li>
+	 *   <li>{@code audit_name} must not be null</li>
+	 * </ul>
+	 *
+	 * <p><strong>Postconditions:</strong></p>
+	 * <ul>
+	 *   <li>Returns {@code true} if any audit in the set has a matching name, {@code false} otherwise</li>
+	 *   <li>The input set is not modified</li>
+	 * </ul>
+	 *
+	 * @param audits the set of existing audits to search, must not be null
+	 * @param audit_name the audit name to search for, must not be null
+	 * @return {@code true} if a matching audit exists, {@code false} otherwise
+	 * @throws NullPointerException if {@code audits} or {@code audit_name} is null
+	 */
 	private boolean auditAlreadyExists(Set<Audit> audits, AuditName audit_name) {
-		assert audits != null;
-		assert audit_name != null;
+		Objects.requireNonNull(audits, "audits must not be null");
+		Objects.requireNonNull(audit_name, "audit_name must not be null");
 		
 		for(Audit audit : audits) {
 			if(audit_name.equals(audit.getName())) {

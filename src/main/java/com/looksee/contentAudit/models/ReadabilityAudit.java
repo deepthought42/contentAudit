@@ -3,6 +3,7 @@ package com.looksee.contentAudit.models;
 import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.List;
+import java.util.Objects;
 import java.util.Set;
 
 import org.slf4j.Logger;
@@ -117,14 +118,17 @@ public class ReadabilityAudit implements IExecutablePageStateAudit {
 	 * </ul>
 	 * 
 	 * @param page_state The page state containing elements to audit, must not be null
-	 * @param audit_record The audit record for tracking this audit execution
+	 * @param audit_record The audit record for tracking this audit execution, must not be null
 	 * @param design_system The design system context (unused in this implementation)
 	 * @return A completed Audit object with readability compliance results
+	 * @throws NullPointerException if {@code page_state} or {@code audit_record} is null
 	 * @throws RuntimeException if ReadabilityCalculator.calculateReadingEase() fails for any text element
 	 */
 	@Override
 	public Audit execute(PageState page_state, AuditRecord audit_record, DesignSystem design_system) {
-		assert page_state != null;
+		// Preconditions
+		Objects.requireNonNull(page_state, "page_state must not be null");
+		Objects.requireNonNull(audit_record, "audit_record must not be null");
 		
 		Set<UXIssueMessage> issue_messages = new HashSet<>();
 		
@@ -271,6 +275,9 @@ public class ReadabilityAudit implements IExecutablePageStateAudit {
 				max_points += issue_msg.getMaxPoints();
 			}
 
+			// Invariant: points earned cannot exceed max points
+			assert points_earned <= max_points : "points_earned (" + points_earned + ") exceeds max_points (" + max_points + ")";
+
 			String description = "";
 			Audit audit = new Audit(AuditCategory.CONTENT,
 									AuditSubcategory.WRITTEN_CONTENT,
@@ -283,8 +290,13 @@ public class ReadabilityAudit implements IExecutablePageStateAudit {
 									why_it_matters,
 									description,
 									false);
-			
-			return audit_service.save(audit);
+
+			Audit saved_audit = audit_service.save(audit);
+
+			// Postcondition: audit must be non-null and persisted
+			assert saved_audit != null : "audit must not be null after save";
+
+			return saved_audit;
 		}
 		catch(Exception e){
 			log.error("readability audit failed", e);
@@ -295,15 +307,30 @@ public class ReadabilityAudit implements IExecutablePageStateAudit {
 	/**
 	 * Generates a description of the issue based on the element, difficulty string,
 	 * and target user education.
-	 * @param element The element that is being audited
-	 * @param difficulty_string The difficulty string of the element
-	 * @param targetUserEducation The target user education of the element
+	 *
+	 * <p><strong>Preconditions:</strong></p>
+	 * <ul>
+	 *   <li>{@code element} must not be null</li>
+	 *   <li>{@code difficulty_string} must not be null</li>
+	 * </ul>
+	 *
+	 * <p><strong>Postconditions:</strong></p>
+	 * <ul>
+	 *   <li>Returns a non-null, non-empty description string</li>
+	 * </ul>
+	 *
+	 * @param element The element that is being audited, must not be null
+	 * @param difficulty_string The difficulty string of the element, must not be null
+	 * @param targetUserEducation The target user education of the element (may be null)
 	 * @return A description of the issue based on the element, difficulty string,
 	 * and target user education.
+	 * @throws NullPointerException if {@code element} or {@code difficulty_string} is null
 	 */
 	private String generateIssueDescription(ElementState element,
 									String difficulty_string,
 									String targetUserEducation) {
+		Objects.requireNonNull(element, "element must not be null");
+		Objects.requireNonNull(difficulty_string, "difficulty_string must not be null");
 		String description = "The text \"" + element.getAllText() + "\" is " + difficulty_string + " to read for " + getConsumerType(targetUserEducation) + ".";
 		
 		return description;
@@ -311,9 +338,16 @@ public class ReadabilityAudit implements IExecutablePageStateAudit {
 
 
 	/**
-	 * Gets the consumer type based on the target user education.
-	 * @param targetUserEducation The target user education
-	 * @return The consumer type based on the target user education.
+	 * Gets the consumer type label based on the target user education.
+	 *
+	 * <p><strong>Postconditions:</strong></p>
+	 * <ul>
+	 *   <li>Returns a non-null, non-empty consumer type string</li>
+	 *   <li>Returns "the average consumer" if {@code targetUserEducation} is null</li>
+	 * </ul>
+	 *
+	 * @param targetUserEducation The target user education (may be null)
+	 * @return The consumer type label based on the target user education.
 	 */
 	private String getConsumerType(String targetUserEducation) {
 		String consumer_label = "the average consumer";
@@ -327,9 +361,17 @@ public class ReadabilityAudit implements IExecutablePageStateAudit {
 
 	/**
 	 * Calculates the points for a given ease of reading score and target user education.
-	 * @param ease_of_reading_score The ease of reading score of the element
-	 * @param target_user_education The target user education of the element
-	 * @return The points for a given ease of reading score and target user education.
+	 *
+	 * <p><strong>Postconditions:</strong></p>
+	 * <ul>
+	 *   <li>Returns a value between 0 and 4, inclusive</li>
+	 *   <li>Higher ease of reading scores yield higher point values</li>
+	 *   <li>Higher target education levels yield higher point values for the same reading ease score</li>
+	 * </ul>
+	 *
+	 * @param ease_of_reading_score The Flesch Reading Ease score (0-100 scale)
+	 * @param target_user_education The target user education level (may be null; null treated as general audience)
+	 * @return The points earned, between 0 and 4 inclusive.
 	 */
 	private int getPointsForEducationLevel(double ease_of_reading_score, String target_user_education) {
 		int element_points = 0;
@@ -450,7 +492,10 @@ public class ReadabilityAudit implements IExecutablePageStateAudit {
 				element_points = 0;
 			}
 		}
-		
+
+		// Postcondition: points must be in valid range [0, 4]
+		assert element_points >= 0 && element_points <= 4 : "element_points (" + element_points + ") out of valid range [0, 4]";
+
 		return element_points;
 	}
 
@@ -473,11 +518,17 @@ public class ReadabilityAudit implements IExecutablePageStateAudit {
 
 	/**
 	 * Calculates the score for a sentence based on the number of words in the sentence.
-	 * If the sentence has 10 or fewer words, it returns a score of 2.
-	 * If the sentence has more than 10 words, it returns a score of 1.
-	 * If the sentence has more than 20 words, it returns a score of 0.
-	 * @param sentence The sentence to calculate the score for
-	 * @return A score based on the number of words in the sentence.
+	 *
+	 * <p><strong>Postconditions:</strong></p>
+	 * <ul>
+	 *   <li>Returns a non-null {@link Score} object</li>
+	 *   <li>Score points are 2 for sentences with 10 or fewer words, 1 for 11-20 words, 0 for more than 20 words</li>
+	 *   <li>Max points is always 2</li>
+	 *   <li>Points earned does not exceed max points</li>
+	 * </ul>
+	 *
+	 * @param sentence The sentence to calculate the score for (may be null or blank, treated as 0 words)
+	 * @return A non-null Score based on the number of words in the sentence.
 	 */
 	public static Score calculateSentenceScore(String sentence) {
 		String[] words = sentence == null || sentence.isBlank() ? new String[0] : sentence.trim().split("\\s+");
@@ -495,12 +546,27 @@ public class ReadabilityAudit implements IExecutablePageStateAudit {
 
 	/**
 	 * Calculates the score for a paragraph based on the number of sentences in the paragraph.
-	 * If the paragraph has 5 or fewer sentences, it returns a score of 1.
-	 * If the paragraph has more than 5 sentences, it returns a score of 0.
-	 * @param sentence_count The number of sentences in the paragraph
-	 * @return A score based on the number of sentences in the paragraph.
+	 *
+	 * <p><strong>Preconditions:</strong></p>
+	 * <ul>
+	 *   <li>{@code sentence_count} must be non-negative</li>
+	 * </ul>
+	 *
+	 * <p><strong>Postconditions:</strong></p>
+	 * <ul>
+	 *   <li>Returns a non-null {@link Score} object</li>
+	 *   <li>Score is 1 for paragraphs with 5 or fewer sentences, 0 otherwise</li>
+	 *   <li>Max points is always 1</li>
+	 * </ul>
+	 *
+	 * @param sentence_count The number of sentences in the paragraph, must be non-negative
+	 * @return A non-null Score based on the number of sentences in the paragraph.
+	 * @throws IllegalArgumentException if {@code sentence_count} is negative
 	 */
 	public static Score calculateParagraphScore(int sentence_count) {
+		if (sentence_count < 0) {
+			throw new IllegalArgumentException("sentence_count must be non-negative, got: " + sentence_count);
+		}
 		if(sentence_count <= 5) {
 			return new Score(1, 1, new HashSet<>());
 		}
