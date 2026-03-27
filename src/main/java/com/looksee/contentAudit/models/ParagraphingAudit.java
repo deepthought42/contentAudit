@@ -49,7 +49,6 @@ import lombok.NoArgsConstructor;
 @Component
 @NoArgsConstructor
 public class ParagraphingAudit implements IExecutablePageStateAudit {
-	@SuppressWarnings("unused")
 	private static Logger log = LoggerFactory.getLogger(ParagraphingAudit.class);
 	
 	@Autowired
@@ -155,20 +154,6 @@ public class ParagraphingAudit implements IExecutablePageStateAudit {
 		for(UXIssueMessage issue_msg : issue_messages) {
 			points_earned += issue_msg.getPoints();
 			max_points += issue_msg.getMaxPoints();
-			/*
-			if(issue_msg.getScore() < 90 && issue_msg instanceof ElementStateIssueMessage) {
-				ElementStateIssueMessage element_issue_msg = (ElementStateIssueMessage)issue_msg;
-				List<ElementState> good_examples = audit_service.findGoodExample(AuditName.ALT_TEXT, 100);
-				if(good_examples.isEmpty()) {
-					log.warn("Could not find element for good example...");
-					continue;
-				}
-				Random random = new Random();
-				ElementState good_example = good_examples.get(random.nextInt(good_examples.size()-1));
-				element_issue_msg.setGoodExample(good_example);
-				issue_message_service.save(element_issue_msg);
-			}
-			*/
 		}
 		
 		String description = "";
@@ -200,7 +185,6 @@ public class ParagraphingAudit implements IExecutablePageStateAudit {
 	 * @return
 	 */
 	public Score calculateSentenceScore(List<Sentence> sentences, ElementState element) {
-		//    		for each sentence check that sentence is no longer than 25 words
 		int points_earned = 0;
 		int max_points = 0;
 		Set<UXIssueMessage> issue_messages = new HashSet<>();
@@ -217,7 +201,6 @@ public class ParagraphingAudit implements IExecutablePageStateAudit {
 			
 			if(words.length > 25) {
 
-				//return new Score(1, 1, new HashSet<>());
 				String recommendation = "Try reducing the size of the sentence or breaking it up into multiple sentences";
 				String title = "Sentence is too long";
 				String description = "The sentence  \"" + sentence.getText().getContent() + "\" has more than 25 words which can make it difficult for users to understand";
@@ -236,9 +219,8 @@ public class ParagraphingAudit implements IExecutablePageStateAudit {
 																words.length);
 				
 				issue_message = (SentenceIssueMessage) issue_message_service.save(issue_message);
-				//issue_message_service.addElement(issue_message.getId(), element.getId());
 				issue_messages.add(issue_message);
-				
+
 				max_points += 1;
 			}
 			else {
@@ -247,11 +229,11 @@ public class ParagraphingAudit implements IExecutablePageStateAudit {
 				String recommendation = "";
 				String title = "Sentence meets EU and US governmental standards for sentence length";
 				String description = "The sentence  \"" + sentence.getText().getContent() + "\" has less than 25 words which is the standard for governmental documentation in the European Union(EU) and the United States(US)";
-				
+
 				SentenceIssueMessage issue_message = new SentenceIssueMessage(
-																Priority.NONE, 
-																description, 
-																recommendation, 
+																Priority.NONE,
+																description,
+																recommendation,
 																element,
 																AuditCategory.CONTENT,
 																labels,
@@ -260,9 +242,8 @@ public class ParagraphingAudit implements IExecutablePageStateAudit {
 																1,
 																1,
 																words.length);
-				
+
 				issue_message = (SentenceIssueMessage) issue_message_service.save(issue_message);
-				//issue_message_service.addElement(issue_message.getId(), element.getId());
 				issue_messages.add(issue_message);
 			}
 		}
@@ -282,7 +263,5 @@ public class ParagraphingAudit implements IExecutablePageStateAudit {
 		}
 
 		return new Score(0, 1, new HashSet<>());
-		//	  		Verify that there are no more than 5 sentences
-		// validate that spacing between paragraphs is at least 2x the font size within the paragraphs
 	}
 }

@@ -8,8 +8,6 @@ import java.util.Set;
 import org.jsoup.Jsoup;
 import org.jsoup.nodes.Document;
 import org.jsoup.nodes.Element;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
@@ -49,9 +47,6 @@ import lombok.NoArgsConstructor;
 @Component
 @NoArgsConstructor
 public class FigureAltTextAudit implements IExecutablePageStateAudit {
-	@SuppressWarnings("unused")
-	private static Logger log = LoggerFactory.getLogger(ImageAltTextAudit.class);
-	
 	@Autowired
 	private AuditService audit_service;
 	
@@ -175,8 +170,7 @@ public class FigureAltTextAudit implements IExecutablePageStateAudit {
 			points_earned += issue_msg.getPoints();
 			max_points += issue_msg.getMaxPoints();
 		}
-		
-		//log.warn("ALT TEXT AUDIT SCORE ::  "+ points_earned + " / " + max_points);
+
 		String description = "figure tags should have <figcaption> elements and they should not be empty";
 
 		Audit audit = new Audit(AuditCategory.CONTENT,

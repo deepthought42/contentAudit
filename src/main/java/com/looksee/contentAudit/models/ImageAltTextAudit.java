@@ -8,8 +8,6 @@ import java.util.Set;
 import org.jsoup.Jsoup;
 import org.jsoup.nodes.Document;
 import org.jsoup.nodes.Element;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
@@ -51,9 +49,6 @@ import lombok.NoArgsConstructor;
 @Component
 @NoArgsConstructor
 public class ImageAltTextAudit implements IExecutablePageStateAudit {
-	@SuppressWarnings("unused")
-	private static Logger log = LoggerFactory.getLogger(ImageAltTextAudit.class);
-	
 	@Autowired
 	private AuditService audit_service;
 	
@@ -208,24 +203,8 @@ public class ImageAltTextAudit implements IExecutablePageStateAudit {
 		for(UXIssueMessage issue_msg : issue_messages) {
 			points_earned += issue_msg.getPoints();
 			max_points += issue_msg.getMaxPoints();
-			/*
-			if(issue_msg.getScore() < 90 && issue_msg instanceof ElementStateIssueMessage) {
-				ElementStateIssueMessage element_issue_msg = (ElementStateIssueMessage)issue_msg;
-				
-				List<ElementState> good_examples = audit_service.findGoodExample(AuditName.ALT_TEXT, 100);
-				if(good_examples.isEmpty()) {
-					log.warn("Could not find element for good example...");
-					continue;
-				}
-				Random random = new Random();
-				ElementState good_example = good_examples.get(random.nextInt(good_examples.size()-1));
-				element_issue_msg.setGoodExample(good_example);
-				issue_message_service.save(element_issue_msg);
-			}
-			*/
 		}
-		
-		//log.warn("ALT TEXT AUDIT SCORE ::  "+ points_earned + " / " + max_points);
+
 		String description = "Images without alternative text defined as a non empty string value";
 
 		Audit audit = new Audit(AuditCategory.CONTENT,

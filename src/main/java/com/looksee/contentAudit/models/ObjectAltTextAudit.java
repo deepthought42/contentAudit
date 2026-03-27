@@ -8,8 +8,6 @@ import java.util.Set;
 import org.jsoup.Jsoup;
 import org.jsoup.nodes.Document;
 import org.jsoup.nodes.Element;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
@@ -50,9 +48,6 @@ import lombok.NoArgsConstructor;
 @Component
 @NoArgsConstructor
 public class ObjectAltTextAudit implements IExecutablePageStateAudit {
-	@SuppressWarnings("unused")
-	private static Logger log = LoggerFactory.getLogger(ImageAltTextAudit.class);
-	
 	@Autowired
 	private AuditService audit_service;
 	
@@ -188,8 +183,7 @@ public class ObjectAltTextAudit implements IExecutablePageStateAudit {
 			points_earned += issue_msg.getPoints();
 			max_points += issue_msg.getMaxPoints();
 		}
-		
-		//log.warn("ALT TEXT AUDIT SCORE ::  "+ points_earned + " / " + max_points);
+
 		String description = "Inputs and other controls should have alternative text defined as a non empty string value";
 
 		Audit audit = new Audit(AuditCategory.CONTENT,
