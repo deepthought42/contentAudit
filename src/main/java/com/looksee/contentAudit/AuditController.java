@@ -140,7 +140,6 @@ public class AuditController {
 			}
 
 			AuditRecord audit_record = audit_record_optional.get();
-			//PageState page = page_state_service.findById(audit_record_msg.getPageId()).get();
 			PageState page = page_state_service.findByAuditRecordId(audit_record_msg.getPageAuditId());
 			if (page == null) {
 				log.warn("page state not found for page audit id {}", audit_record_msg.getPageAuditId());

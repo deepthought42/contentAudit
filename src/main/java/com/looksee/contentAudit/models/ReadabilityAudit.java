@@ -53,7 +53,6 @@ import lombok.NoArgsConstructor;
 @Component
 @NoArgsConstructor
 public class ReadabilityAudit implements IExecutablePageStateAudit {
-	@SuppressWarnings("unused")
 	private static Logger log = LoggerFactory.getLogger(ReadabilityAudit.class);
 	
 	@Autowired
@@ -481,7 +480,6 @@ public class ReadabilityAudit implements IExecutablePageStateAudit {
 	 * @return A score based on the number of words in the sentence.
 	 */
 	public static Score calculateSentenceScore(String sentence) {
-		//    		for each sentence check that sentence is no longer than 20 words
 		String[] words = sentence == null || sentence.isBlank() ? new String[0] : sentence.trim().split("\\s+");
 		
 		if(words.length <= 10) {
@@ -508,7 +506,5 @@ public class ReadabilityAudit implements IExecutablePageStateAudit {
 		}
 
 		return new Score(0, 1, new HashSet<>());
-		//	  		Verify that there are no more than 5 sentences
-		// validate that spacing between paragraphs is at least 2x the font size within the paragraphs
 	}
 }

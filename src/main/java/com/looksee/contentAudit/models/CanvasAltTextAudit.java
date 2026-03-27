@@ -8,8 +8,6 @@ import java.util.Set;
 import org.jsoup.Jsoup;
 import org.jsoup.nodes.Document;
 import org.jsoup.nodes.Element;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
@@ -50,9 +48,6 @@ import lombok.NoArgsConstructor;
 @Component
 @NoArgsConstructor
 public class CanvasAltTextAudit implements IExecutablePageStateAudit {
-	@SuppressWarnings("unused")
-	private static Logger log = LoggerFactory.getLogger(ImageAltTextAudit.class);
-	
 	@Autowired
 	private AuditService audit_service;
 	
@@ -222,8 +217,7 @@ public class CanvasAltTextAudit implements IExecutablePageStateAudit {
 			points_earned += issue_msg.getPoints();
 			max_points += issue_msg.getMaxPoints();
 		}
-		
-		//log.warn("ALT TEXT AUDIT SCORE ::  "+ points_earned + " / " + max_points);
+
 		String description = "Audio/Video tags should have <track> defined and fall-back text that includes a link to a transcript for the audio/video.";
 
 		Audit audit = new Audit(AuditCategory.CONTENT,
