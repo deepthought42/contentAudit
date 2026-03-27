@@ -30,6 +30,49 @@ The controller expects a Pub/Sub push body with base64-encoded JSON in `message.
 - `pageId`
 - `accountId`
 
+## Design by Contract
+
+This codebase follows [Design by Contract](https://en.wikipedia.org/wiki/Design_by_contract) (DbC) principles to enforce correctness at method boundaries. Every public and significant private method documents and enforces its contract through three mechanisms:
+
+### Preconditions
+
+Preconditions validate that callers satisfy required input constraints before a method executes. They are enforced at runtime using `Objects.requireNonNull()` (which throws `NullPointerException`) and `IllegalArgumentException` for invalid argument values. Preconditions are **always active** regardless of JVM assertion settings.
+
+Examples:
+- All `execute()` methods on audit classes require a non-null `page_state`
+- `ReadabilityAudit.execute()` additionally requires a non-null `audit_record`
+- `calculateParagraphScore()` requires a non-negative `sentence_count`
+
+### Postconditions
+
+Postconditions verify that methods produce valid results. They are enforced using `assert` statements at method exit points, validating return values and side effects.
+
+Examples:
+- All `execute()` methods assert the saved audit object is non-null after persistence
+- `getPointsForEducationLevel()` asserts the returned score is in the valid range [0, 4]
+
+### Invariants
+
+Invariants enforce conditions that must always hold true during execution. They are checked using `assert` statements at critical points within method bodies.
+
+Examples:
+- All audit score calculations assert `points_earned <= max_points`
+- Class-level invariants documented in JavaDoc (e.g., `AuditController` requires all `@Autowired` dependencies to be non-null)
+
+### Contract documentation
+
+All contracts are documented in JavaDoc using structured `<strong>Preconditions</strong>`, `<strong>Postconditions</strong>`, and `<strong>Invariants</strong>` sections. Contract violations are declared via `@throws` tags.
+
+### Enabling assertion checks
+
+Postcondition and invariant assertions require the `-ea` JVM flag to be active at runtime:
+
+```bash
+java -ea -jar target/content-audit-<version>.jar
+```
+
+Precondition checks (`Objects.requireNonNull`, `IllegalArgumentException`) are always enforced regardless of this flag.
+
 ## Reliability and validation improvements
 
 Recent code review fixes include:

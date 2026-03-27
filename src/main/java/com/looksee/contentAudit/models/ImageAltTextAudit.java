@@ -3,6 +3,7 @@ package com.looksee.contentAudit.models;
 import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.List;
+import java.util.Objects;
 import java.util.Set;
 
 import org.jsoup.Jsoup;
@@ -95,12 +96,14 @@ public class ImageAltTextAudit implements IExecutablePageStateAudit {
 	 * @param audit_record The audit record for tracking this audit execution
 	 * @param design_system The design system context (unused in this implementation)
 	 * @return A completed Audit object with accessibility compliance results for area, input, and embed elements
+	 * @throws NullPointerException if {@code page_state} is null
 	 */
 	@Override
 	public Audit execute(PageState page_state,
 						AuditRecord audit_record,
 						DesignSystem design_system) {
-		assert page_state != null;
+		// Preconditions
+		Objects.requireNonNull(page_state, "page_state must not be null");
 		
 		Set<UXIssueMessage> issue_messages = new HashSet<>();
 
@@ -205,6 +208,9 @@ public class ImageAltTextAudit implements IExecutablePageStateAudit {
 			max_points += issue_msg.getMaxPoints();
 		}
 
+		// Invariant: points earned cannot exceed max points
+		assert points_earned <= max_points : "points_earned (" + points_earned + ") exceeds max_points (" + max_points + ")";
+
 		String description = "Images without alternative text defined as a non empty string value";
 
 		Audit audit = new Audit(AuditCategory.CONTENT,
@@ -221,7 +227,10 @@ public class ImageAltTextAudit implements IExecutablePageStateAudit {
 
 		audit = audit_service.save(audit);
 		audit_service.addAllIssues(audit.getId(), issue_messages);
-		
+
+		// Postcondition: audit must be non-null and persisted
+		assert audit != null : "audit must not be null after save";
+
 		return audit;
 	}
 }

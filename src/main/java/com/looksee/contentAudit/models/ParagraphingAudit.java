@@ -2,6 +2,7 @@ package com.looksee.contentAudit.models;
 
 import java.util.HashSet;
 import java.util.List;
+import java.util.Objects;
 import java.util.Set;
 
 import org.slf4j.Logger;
@@ -102,13 +103,15 @@ public class ParagraphingAudit implements IExecutablePageStateAudit {
 	 * @param audit_record The audit record for tracking this audit execution
 	 * @param design_system The design system context (unused in this implementation)
 	 * @return A completed Audit object with paragraphing compliance results
+	 * @throws NullPointerException if {@code page_state} is null
 	 * @throws RuntimeException if CloudNLPUtils.extractSentences() fails for any paragraph
 	 */
 	@Override
 	public Audit execute(PageState page_state,
 						AuditRecord audit_record,
 						DesignSystem design_system) {
-		assert page_state != null;
+		// Preconditions
+		Objects.requireNonNull(page_state, "page_state must not be null");
 
 		Set<UXIssueMessage> issue_messages = new HashSet<>();
 		
@@ -155,7 +158,10 @@ public class ParagraphingAudit implements IExecutablePageStateAudit {
 			points_earned += issue_msg.getPoints();
 			max_points += issue_msg.getMaxPoints();
 		}
-		
+
+		// Invariant: points earned cannot exceed max points
+		assert points_earned <= max_points : "points_earned (" + points_earned + ") exceeds max_points (" + max_points + ")";
+
 		String description = "";
 
 		Audit audit = new Audit(AuditCategory.CONTENT,
@@ -172,6 +178,10 @@ public class ParagraphingAudit implements IExecutablePageStateAudit {
 
 		audit = audit_service.save(audit);
 		audit_service.addAllIssues(audit.getId(), issue_messages);
+
+		// Postcondition: audit must be non-null and persisted
+		assert audit != null : "audit must not be null after save";
+
 		return audit;
 	}
 
@@ -179,12 +189,30 @@ public class ParagraphingAudit implements IExecutablePageStateAudit {
 	/**
 	 * Reviews list of sentences and gives a score based on how many of those
 	 * sentences have 25 words or less. This is considered the maximum sentence
-	 * length allowed in EU government documentation
-	 * @param sentences
-	 * @param element
-	 * @return
+	 * length allowed in EU government documentation.
+	 *
+	 * <p><strong>Preconditions:</strong></p>
+	 * <ul>
+	 *   <li>{@code sentences} must not be null</li>
+	 *   <li>{@code element} must not be null</li>
+	 * </ul>
+	 *
+	 * <p><strong>Postconditions:</strong></p>
+	 * <ul>
+	 *   <li>Returns a non-null {@link Score} object</li>
+	 *   <li>Points earned does not exceed max points</li>
+	 *   <li>Each sentence contributes exactly 1 to max points</li>
+	 *   <li>All generated {@link SentenceIssueMessage} objects are persisted</li>
+	 * </ul>
+	 *
+	 * @param sentences The list of sentences to evaluate, must not be null
+	 * @param element The element containing the sentences, must not be null
+	 * @return A non-null Score with points earned, max points, and associated issue messages
+	 * @throws NullPointerException if {@code sentences} or {@code element} is null
 	 */
 	public Score calculateSentenceScore(List<Sentence> sentences, ElementState element) {
+		Objects.requireNonNull(sentences, "sentences must not be null");
+		Objects.requireNonNull(element, "element must not be null");
 		int points_earned = 0;
 		int max_points = 0;
 		Set<UXIssueMessage> issue_messages = new HashSet<>();
@@ -247,17 +275,36 @@ public class ParagraphingAudit implements IExecutablePageStateAudit {
 				issue_messages.add(issue_message);
 			}
 		}
+
+		// Invariant: points earned cannot exceed max points
+		assert points_earned <= max_points : "points_earned (" + points_earned + ") exceeds max_points (" + max_points + ")";
+
 		return new Score(points_earned, max_points, issue_messages);
 	}
 
 	/**
 	 * Calculates the score for a paragraph based on the number of sentences in the paragraph.
-	 * If the paragraph has 5 or fewer sentences, it returns a score of 1.
-	 * If the paragraph has more than 5 sentences, it returns a score of 0.
-	 * @param sentence_count
-	 * @return
+	 *
+	 * <p><strong>Preconditions:</strong></p>
+	 * <ul>
+	 *   <li>{@code sentence_count} must be non-negative</li>
+	 * </ul>
+	 *
+	 * <p><strong>Postconditions:</strong></p>
+	 * <ul>
+	 *   <li>Returns a non-null {@link Score} object</li>
+	 *   <li>Score is 1 for paragraphs with 5 or fewer sentences, 0 otherwise</li>
+	 *   <li>Max points is always 1</li>
+	 * </ul>
+	 *
+	 * @param sentence_count The number of sentences in the paragraph, must be non-negative
+	 * @return A non-null Score based on the number of sentences in the paragraph.
+	 * @throws IllegalArgumentException if {@code sentence_count} is negative
 	 */
 	public static Score calculateParagraphScore(int sentence_count) {
+		if (sentence_count < 0) {
+			throw new IllegalArgumentException("sentence_count must be non-negative, got: " + sentence_count);
+		}
 		if(sentence_count <= 5) {
 			return new Score(1, 1, new HashSet<>());
 		}
